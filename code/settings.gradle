@@ -1,0 +1,2 @@
+rootProject.name='Edge SLAM'
+include ':app'
