@@ -18,5 +18,7 @@ class MainActivity : AppCompatActivity() {
         fragmentTransaction.add(R.id.fragmentFrame_1, frame1Fragment)
         fragmentTransaction.add(R.id.fragmentFrame_2, frame2Fragment)
         fragmentTransaction.commit()
+
     }
+
 }
