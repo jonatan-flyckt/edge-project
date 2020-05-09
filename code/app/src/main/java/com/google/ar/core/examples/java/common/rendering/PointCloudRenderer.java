@@ -18,6 +18,9 @@ import android.content.Context;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
+import android.util.Log;
+
+import com.google.ar.core.Point;
 import com.google.ar.core.PointCloud;
 import java.io.IOException;
 
@@ -108,6 +111,7 @@ public class PointCloudRenderer {
 
     // If the VBO is not large enough to fit the new point cloud, resize it.
     numPoints = cloud.getPoints().remaining() / FLOATS_PER_POINT;
+
     if (numPoints * BYTES_PER_POINT > vboSize) {
       while (numPoints * BYTES_PER_POINT > vboSize) {
         vboSize *= 2;
@@ -118,10 +122,39 @@ public class PointCloudRenderer {
         GLES20.GL_ARRAY_BUFFER, 0, numPoints * BYTES_PER_POINT, cloud.getPoints());
     GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
 
-
-
     ShaderUtil.checkGLError(TAG, "after update");
+
+    // REMOVE LATER
+    Log.d("PointCloud", String.valueOf(numPoints));
+    Log.d("HAS WAITED", String.valueOf(hasWaited));
+    hasWaited++;
   }
+
+  public int hasWaited = 0;
+  public boolean oneTimePrint = true;
+
+  public void getAllPoints(PointCloud cloud) {
+    if (hasWaited > 50 && oneTimePrint) {
+      oneTimePrint = false;
+
+      Log.d("PointCloud", String.valueOf(numPoints));
+      Log.d("ONE TIME PRINT", "----------------------------------------------------");
+
+      for (int i = 0; i < cloud.getPoints().remaining(); i = i + BYTES_PER_FLOAT) {
+
+        float x = cloud.getPoints().get(i + 0);
+        float y = cloud.getPoints().get(i + 1);
+        float z = cloud.getPoints().get(i + 2);
+        float con = cloud.getPoints().get(i + 3);
+
+        Log.d("TEST PRINT POINTS", "X: " + x + " Y: " + y + " Z: " + z + " CON: " + con);
+
+      }
+
+      Log.d("ONE TIME PRINT", "----------------------------------------------------");
+    }
+  }
+
 
   /**
    * Renders the point cloud. ARCore point cloud is given in world space.
