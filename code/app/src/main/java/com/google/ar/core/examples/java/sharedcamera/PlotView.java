@@ -7,119 +7,94 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
-import android.graphics.RectF;
-import android.graphics.Region;
 import android.util.DisplayMetrics;
 import android.view.View;
 
+import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class PlotView extends View {
+    Paint cameraPaint, cameraPathPaint, landmarkPaint, backgroundPaint;
+    int screenWidth, screenHeight;
+    float landmarkCircleSize, cameraCircleSize;
+    Path path;
 
-    Paint mPaint, otherPaint, outerPaint, mTextPaint;
-    RectF mRectF;
-    int mPadding;
+    int lowest, highest, leftmost, rightmost;
 
-    float arcLeft, arcTop, arcRight, arcBottom;
-
-    Path mPath;
-
+    public ArrayList<Point> tempGetCameraPoints(Context context){
+        ArrayList<Point> list = new ArrayList<Point>(){
+            {
+                add(new Point((int) pxFromDp(context, 20) + (screenWidth / 2), (int) pxFromDp(context, 90)));
+                add(new Point((int) pxFromDp(context, 0) + (screenWidth / 2), (int) pxFromDp(context, 60)));
+                add(new Point((int) pxFromDp(context, 0) + (screenWidth / 2), (int) pxFromDp(context, 20)));
+                add(new Point((int) pxFromDp(context, 50) + (screenWidth / 2), (int) pxFromDp(context, 30)));
+                add(new Point((int) pxFromDp(context, 30) + (screenWidth / 2), (int) pxFromDp(context, 60)));
+                add(new Point((int) pxFromDp(context, 90) + (screenWidth / 2), (int) pxFromDp(context, 60)));
+            }
+        };
+        return list;
+    }
 
     public PlotView(Context context) {
         super(context);
-
-        //mPaint = new Paint();
-        //mPaint.setAntiAlias(true);
-
-        //mPaint.setStyle(Paint.Style.STROKE);
-        //mPaint.setColor(Color.BLUE);
-        //mPaint.setStrokeWidth(5);
-
-
-        //mTextPaint = new Paint(Paint.LINEAR_TEXT_FLAG | Paint.ANTI_ALIAS_FLAG);
-        //mTextPaint.setColor(Color.BLACK);
-        //mTextPaint.setTextSize(pxFromDp(context, 24));
-
-        otherPaint = new Paint();
-
-        //outerPaint = new Paint();
-        //outerPaint.setStyle(Paint.Style.FILL);
-        //outerPaint.setColor(Color.GRAY);
-
-        mPadding = 100;
-
-
         DisplayMetrics displayMetrics = new DisplayMetrics();
-
         ((Activity) getContext()).getWindowManager()
                 .getDefaultDisplay()
                 .getMetrics(displayMetrics);
+        screenWidth = displayMetrics.widthPixels;
+        screenHeight = displayMetrics.heightPixels;
+        landmarkCircleSize = pxFromDp(context, 2);
+        cameraCircleSize = pxFromDp(context, 5);
+        landmarkPaint = new Paint();
+        landmarkPaint.setStyle(Paint.Style.FILL);
+        landmarkPaint.setColor(Color.RED);
+        landmarkPaint.setAlpha(30);
+        cameraPaint = new Paint();
+        cameraPaint.setStrokeWidth(cameraCircleSize);
+        cameraPaint.setStyle(Paint.Style.FILL);
+        cameraPaint.setColor(Color.GREEN);
+        cameraPathPaint = new Paint();
+        cameraPathPaint.setStrokeWidth(cameraCircleSize / 3);
+        cameraPathPaint.setStyle(Paint.Style.STROKE);
+        cameraPathPaint.setColor(Color.GREEN);
+        backgroundPaint = new Paint();
+        backgroundPaint.setStyle(Paint.Style.FILL);
+        backgroundPaint.setColor(Color.DKGRAY);
+    }
 
-
-        //int screenWidth = displayMetrics.widthPixels;
-        //int screenHeight = displayMetrics.heightPixels;
-
-        arcLeft = pxFromDp(context, 1);
-        //arcTop = pxFromDp(context, 20);
-        //arcRight = pxFromDp(context, 100);
-        //arcBottom = pxFromDp(context, 100);
-
-
-        //Point p1 = new Point((int) pxFromDp(context, 80) + (screenWidth / 2), (int) pxFromDp(context, 40));
-        //Point p2 = new Point((int) pxFromDp(context, 40) + (screenWidth / 2), (int) pxFromDp(context, 80));
-        //Point p3 = new Point((int) pxFromDp(context, 120) + (screenWidth / 2), (int) pxFromDp(context, 80));
-
-        //Code for showing path, nice for showing camera movement through room:
-        /*
-        mPath = new Path();
-        mPath.moveTo(p1.x, p1.y);
-        mPath.lineTo(p2.x, p2.y);
-        mPath.lineTo(p3.x, p3.y);
-        mPath.close();
-        */
-
-        //mRectF = new RectF(screenWidth / 4, screenHeight / 3, screenWidth / 6, screenHeight / 2);
-
+    private Path getCameraPath(ArrayList<Point> points){
+        path = new Path();
+        boolean first = true;
+        for (Point point : points){
+            if (first){
+                first = false;
+                path.moveTo(point.x, point.y);
+            }
+            else
+                path.lineTo(point.x, point.y);
+        }
+        return path;
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-
-        //canvas.drawRoundRect(mRectF, 10, 10, otherPaint);
-        //canvas.clipRect(mRectF, Region.Op.DIFFERENCE);
-        //canvas.drawPaint(outerPaint);
-
-        //canvas.drawLine(250, 250, 400, 400, mPaint);
-        //canvas.drawRect(mPadding, mPadding, getWidth() - mPadding, getHeight() - mPadding, mPaint);
-        //canvas.drawArc(arcLeft, arcTop, arcRight, arcBottom, 75, 45, true, mPaint);
+        canvas.drawPaint(backgroundPaint);
 
 
-        //otherPaint.setColor(Color.GREEN);
-        otherPaint.setStyle(Paint.Style.FILL);
-
-
-        /*canvas.drawRect(
-                getLeft() + (getRight() - getLeft()) / 3,
-                getTop() + (getBottom() - getTop()) / 3,
-                getRight() - (getRight() - getLeft()) / 3,
-                getBottom() - (getBottom() - getTop()) / 3, otherPaint);
-         */
-
-
-        //canvas.drawPath(mPath, mPaint);
-        otherPaint.setColor(Color.RED);
-        otherPaint.setAlpha(50);
         for (int i = 0; i < 10000; i++){
             canvas.drawCircle(ThreadLocalRandom.current().nextInt(0, getWidth()),
                     ThreadLocalRandom.current().nextInt(0, getHeight()),
-                    arcLeft, otherPaint);
+                    landmarkCircleSize, landmarkPaint);
         }
 
-        //canvas.drawText("Canvas basics", (float) (getWidth() * 0.3), (float) (getHeight() * 0.8), mTextPaint);
+        //Draw camera position and path:
+        canvas.drawPath(getCameraPath(tempGetCameraPoints(getContext())), cameraPathPaint);
+        canvas.drawCircle(tempGetCameraPoints(getContext()).get(tempGetCameraPoints(getContext()).size() - 1).x,
+                tempGetCameraPoints(getContext()).get(tempGetCameraPoints(getContext()).size() - 1).y,
+                cameraCircleSize, cameraPaint);
 
     }
-
 
     public static float pxFromDp(final Context context, final float dp) {
         return dp * context.getResources().getDisplayMetrics().density;
