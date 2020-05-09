@@ -16,6 +16,12 @@
 
 package com.google.ar.core.examples.java.sharedcamera;
 
+
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+
 import android.content.Context;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
@@ -345,59 +351,27 @@ public class SharedCameraActivity extends AppCompatActivity
 
 
 
-  ScatterChart chart;
+  //ScatterChart chart;
+
+
+
 
   private Handler mainThreadHandler;
   private Runnable plottingManager = new Runnable() {
     @Override
     public void run() {
-      //Log.d("EH", "looping with 1 second sleep.");
       updateChart();
-      mainThreadHandler.postDelayed(this, 5000);
+      mainThreadHandler.postDelayed(this, 100);
     }
   };
 
+
   public void updateChart(){
-    Log.d("EH", "inside updateChart");
-    //chart.clear();
-
-  /*  landmarksHelper.addLandmark(ThreadLocalRandom.current().nextInt(0, 5 + 1), ThreadLocalRandom.current().nextInt(0, 5 + 1), 3, 0.9f);
-    landmarksHelper.addLandmark(ThreadLocalRandom.current().nextInt(0, 5 + 1), ThreadLocalRandom.current().nextInt(0, 5 + 1), 1, 0.9f);
-    landmarksHelper.addLandmark(ThreadLocalRandom.current().nextInt(0, 5 + 1), ThreadLocalRandom.current().nextInt(0, 5 + 1), 2, 0.9f);
-    landmarksHelper.addLandmark(ThreadLocalRandom.current().nextInt(0, 5 + 1), ThreadLocalRandom.current().nextInt(0, 5 + 1), 3, 0.9f);
-    landmarksHelper.addLandmark(ThreadLocalRandom.current().nextInt(0, 5 + 1), ThreadLocalRandom.current().nextInt(0, 5 + 1), 1, 0.9f);
-    landmarksHelper.addLandmark(ThreadLocalRandom.current().nextInt(0, 5 + 1), ThreadLocalRandom.current().nextInt(0, 5 + 1), 2, 0.9f);
-    landmarksHelper.addLandmark(ThreadLocalRandom.current().nextInt(0, 5 + 1), ThreadLocalRandom.current().nextInt(0, 5 + 1), 3, 0.9f);
-    landmarksHelper.addLandmark(ThreadLocalRandom.current().nextInt(0, 5 + 1), ThreadLocalRandom.current().nextInt(0, 5 + 1), 1, 0.9f);
-    landmarksHelper.addLandmark(ThreadLocalRandom.current().nextInt(0, 5 + 1), ThreadLocalRandom.current().nextInt(0, 5 + 1), 2, 0.9f);
-*/
-
-
-    ArrayList<Entry> entries = new ArrayList<>();
-
-    ScatterDataSet dataSet = new ScatterDataSet(entries, "");
-
-    /*for (LandmarksHelper.Landmark lm : landmarksHelper.landMarkArray) {
-      entries.add(new Entry(lm.x, lm.y));
-    }*/
-
-
-    for (int i = 0; i < 50; i++) {
-      entries.add(new Entry(ThreadLocalRandom.current().nextInt(0, 50 + 1), ThreadLocalRandom.current().nextInt(0, 5 + 1)));
-    }
-
-
-    ArrayList<IScatterDataSet> dataSets = new ArrayList<>();
-    dataSet.notifyDataSetChanged();
-    ScatterDataSet testSet = new ScatterDataSet(entries, "DS 2");
-    dataSets.add(testSet);
-
-    ScatterData data = new ScatterData(dataSets);
-
-    chart.setData(data);
-    //chart.notifyDataSetChanged();
-    chart.invalidate();
+    plotView.invalidate();
   }
+
+  LinearLayout linearLayout;
+  PlotView plotView;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -447,17 +421,11 @@ public class SharedCameraActivity extends AppCompatActivity
 
 
 
+    linearLayout = findViewById(R.id.linearLayout);
+    plotView = new PlotView(this);
+    linearLayout.addView(plotView);
     this.mainThreadHandler = new Handler();
-    chart = (ScatterChart) findViewById(R.id.chart);
-    YAxis leftAxis = chart.getAxisLeft();
-    YAxis rightAxis = chart.getAxisRight();
-    XAxis xAxis = chart.getXAxis();
-
-    leftAxis.setEnabled(false);
-    rightAxis.setEnabled(false);
-    xAxis.setEnabled(false);
     this.plottingManager.run();
-    //updateChart();
   }
 
 
