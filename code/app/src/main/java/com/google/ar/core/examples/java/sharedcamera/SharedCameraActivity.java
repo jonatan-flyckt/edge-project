@@ -47,6 +47,19 @@ import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.charts.ScatterChart;
+import com.github.mikephil.charting.components.AxisBase;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.data.ScatterData;
+import com.github.mikephil.charting.data.ScatterDataSet;
+import com.github.mikephil.charting.interfaces.datasets.IScatterDataSet;
+import com.github.mikephil.charting.utils.ColorTemplate;
 import com.google.ar.core.Anchor;
 import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Camera;
@@ -98,6 +111,10 @@ import javax.microedition.khronos.opengles.GL10;
  *   <li>Requesting CAMERA_PERMISSION when app starts, and each time the app is resumed
  * </ul>
  */
+
+
+
+
 public class SharedCameraActivity extends AppCompatActivity
     implements GLSurfaceView.Renderer,
         ImageReader.OnImageAvailableListener,
@@ -354,22 +371,64 @@ public class SharedCameraActivity extends AppCompatActivity
     // Ensure initial switch position is set based on initial value of `arMode` variable.
     arcoreSwitch.setChecked(arMode);
     arcoreSwitch.setOnCheckedChangeListener(
-        (view, checked) -> {
-          Log.i(TAG, "Switching to " + (checked ? "AR" : "non-AR") + " mode.");
-          if (checked) {
-            arMode = true;
-            resumeARCore();
-          } else {
-            arMode = false;
+            (view, checked) -> {
+              Log.i(TAG, "Switching to " + (checked ? "AR" : "non-AR") + " mode.");
+              if (checked) {
+                arMode = true;
+                resumeARCore();
+              } else {
+                arMode = false;
 
-            pauseARCore();
-            resumeCamera2();
-          }
-          updateSnackbarMessage();
-        });
+                pauseARCore();
+                resumeCamera2();
+              }
+              updateSnackbarMessage();
+            });
 
     messageSnackbarHelper.setMaxLines(4);
     updateSnackbarMessage();
+
+
+
+
+
+    LandmarksHelper landmarksHelper = new LandmarksHelper();
+    landmarksHelper.addLandmark(1, 2, 3, 0.9f);
+    landmarksHelper.addLandmark(2, 3, 1, 0.9f);
+    landmarksHelper.addLandmark(3, 1, 2, 0.9f);
+
+    ScatterChart chart = (ScatterChart) findViewById(R.id.chart);
+
+    ArrayList<Entry> entries = new ArrayList<>();
+    for (LandmarksHelper.Landmark lm : landmarksHelper.landMarkArray) {
+      entries.add(new Entry(lm.x, lm.y));
+    }
+
+    ScatterDataSet dataSet = new ScatterDataSet(entries, "");
+
+    for (LandmarksHelper.Landmark lm : landmarksHelper.landMarkArray) {
+      entries.add(new Entry(lm.x, lm.y));
+    }
+    ArrayList<IScatterDataSet> dataSets = new ArrayList<>();
+    ScatterDataSet testSet = new ScatterDataSet(entries, "DS 2");
+    dataSets.add(testSet);
+
+    // create a data object with the data sets
+    ScatterData data = new ScatterData(dataSets);
+    //data.setValueTypeface(tfLight);
+
+    YAxis leftAxis = chart.getAxisLeft();
+    YAxis rightAxis = chart.getAxisRight();
+    XAxis xAxis = chart.getXAxis();
+
+    leftAxis.setEnabled(false);
+    rightAxis.setEnabled(false);
+    xAxis.setEnabled(false);
+
+
+    chart.setData(data);
+    chart.invalidate();
+
   }
 
   private synchronized void waitUntilCameraCaptureSessionIsActive() {
