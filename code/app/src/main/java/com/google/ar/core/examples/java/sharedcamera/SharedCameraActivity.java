@@ -37,6 +37,7 @@ import android.os.Bundle;
 import android.os.ConditionVariable;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -47,6 +48,14 @@ import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.github.mikephil.charting.charts.ScatterChart;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.ScatterData;
+import com.github.mikephil.charting.data.ScatterDataSet;
+import com.github.mikephil.charting.interfaces.datasets.IScatterDataSet;
 import com.google.ar.core.Anchor;
 import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Camera;
@@ -79,6 +88,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -200,8 +211,6 @@ public class SharedCameraActivity extends AppCompatActivity
   // Egna saker --------------------------------------------------------------------------------
 
   private final LandmarksHelper landmarksHelper = new LandmarksHelper();
-
-
 
   // Camera device state callback.
   private final CameraDevice.StateCallback cameraDeviceCallback =
@@ -332,6 +341,64 @@ public class SharedCameraActivity extends AppCompatActivity
         }
       };
 
+
+
+
+
+  ScatterChart chart;
+
+  private Handler mainThreadHandler;
+  private Runnable plottingManager = new Runnable() {
+    @Override
+    public void run() {
+      //Log.d("EH", "looping with 1 second sleep.");
+      updateChart();
+      mainThreadHandler.postDelayed(this, 5000);
+    }
+  };
+
+  public void updateChart(){
+    Log.d("EH", "inside updateChart");
+    //chart.clear();
+
+  /*  landmarksHelper.addLandmark(ThreadLocalRandom.current().nextInt(0, 5 + 1), ThreadLocalRandom.current().nextInt(0, 5 + 1), 3, 0.9f);
+    landmarksHelper.addLandmark(ThreadLocalRandom.current().nextInt(0, 5 + 1), ThreadLocalRandom.current().nextInt(0, 5 + 1), 1, 0.9f);
+    landmarksHelper.addLandmark(ThreadLocalRandom.current().nextInt(0, 5 + 1), ThreadLocalRandom.current().nextInt(0, 5 + 1), 2, 0.9f);
+    landmarksHelper.addLandmark(ThreadLocalRandom.current().nextInt(0, 5 + 1), ThreadLocalRandom.current().nextInt(0, 5 + 1), 3, 0.9f);
+    landmarksHelper.addLandmark(ThreadLocalRandom.current().nextInt(0, 5 + 1), ThreadLocalRandom.current().nextInt(0, 5 + 1), 1, 0.9f);
+    landmarksHelper.addLandmark(ThreadLocalRandom.current().nextInt(0, 5 + 1), ThreadLocalRandom.current().nextInt(0, 5 + 1), 2, 0.9f);
+    landmarksHelper.addLandmark(ThreadLocalRandom.current().nextInt(0, 5 + 1), ThreadLocalRandom.current().nextInt(0, 5 + 1), 3, 0.9f);
+    landmarksHelper.addLandmark(ThreadLocalRandom.current().nextInt(0, 5 + 1), ThreadLocalRandom.current().nextInt(0, 5 + 1), 1, 0.9f);
+    landmarksHelper.addLandmark(ThreadLocalRandom.current().nextInt(0, 5 + 1), ThreadLocalRandom.current().nextInt(0, 5 + 1), 2, 0.9f);
+*/
+
+
+    ArrayList<Entry> entries = new ArrayList<>();
+
+    ScatterDataSet dataSet = new ScatterDataSet(entries, "");
+
+    /*for (LandmarksHelper.Landmark lm : landmarksHelper.landMarkArray) {
+      entries.add(new Entry(lm.x, lm.y));
+    }*/
+
+
+    for (int i = 0; i < 50; i++) {
+      entries.add(new Entry(ThreadLocalRandom.current().nextInt(0, 50 + 1), ThreadLocalRandom.current().nextInt(0, 5 + 1)));
+    }
+
+
+    ArrayList<IScatterDataSet> dataSets = new ArrayList<>();
+    dataSet.notifyDataSetChanged();
+    ScatterDataSet testSet = new ScatterDataSet(entries, "DS 2");
+    dataSets.add(testSet);
+
+    ScatterData data = new ScatterData(dataSets);
+
+    chart.setData(data);
+    //chart.notifyDataSetChanged();
+    chart.invalidate();
+  }
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -376,7 +443,27 @@ public class SharedCameraActivity extends AppCompatActivity
 
     messageSnackbarHelper.setMaxLines(4);
     updateSnackbarMessage();
+
+
+
+
+    this.mainThreadHandler = new Handler();
+    chart = (ScatterChart) findViewById(R.id.chart);
+    YAxis leftAxis = chart.getAxisLeft();
+    YAxis rightAxis = chart.getAxisRight();
+    XAxis xAxis = chart.getXAxis();
+
+    leftAxis.setEnabled(false);
+    rightAxis.setEnabled(false);
+    xAxis.setEnabled(false);
+    this.plottingManager.run();
+    //updateChart();
   }
+
+
+
+
+
 
   private synchronized void waitUntilCameraCaptureSessionIsActive() {
     while (!captureSessionChangesPossible) {

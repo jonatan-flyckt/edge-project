@@ -11,7 +11,7 @@ public class LandmarksHelper {
 
     public float confidenceThreshold = (float) 0.4;
 
-    private static class Landmark {
+    public static class Landmark {
         public final int x;
         public final int y;
         public final int z;
