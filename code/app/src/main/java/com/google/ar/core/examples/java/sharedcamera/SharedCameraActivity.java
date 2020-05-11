@@ -55,13 +55,6 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.github.mikephil.charting.charts.ScatterChart;
-import com.github.mikephil.charting.components.XAxis;
-import com.github.mikephil.charting.components.YAxis;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.ScatterData;
-import com.github.mikephil.charting.data.ScatterDataSet;
-import com.github.mikephil.charting.interfaces.datasets.IScatterDataSet;
 import com.google.ar.core.Anchor;
 import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Camera;
@@ -296,7 +289,6 @@ public class SharedCameraActivity extends AppCompatActivity
             captureSessionChangesPossible = true;
             SharedCameraActivity.this.notify();
           }
-          updateSnackbarMessage();
         }
 
         @Override
@@ -416,11 +408,9 @@ public class SharedCameraActivity extends AppCompatActivity
             pauseARCore();
             resumeCamera2();
           }
-          updateSnackbarMessage();
         });
 
     messageSnackbarHelper.setMaxLines(4);
-    updateSnackbarMessage();
 
 
 
@@ -500,7 +490,6 @@ public class SharedCameraActivity extends AppCompatActivity
         // Resume ARCore.
         sharedSession.resume();
         arcoreActive = true;
-        updateSnackbarMessage();
 
         // Set capture session callback while in AR mode.
         sharedCamera.setCaptureCallback(cameraCaptureCallback, backgroundHandler);
@@ -516,17 +505,9 @@ public class SharedCameraActivity extends AppCompatActivity
       // Pause ARCore.
       sharedSession.pause();
       arcoreActive = false;
-      updateSnackbarMessage();
     }
   }
 
-  private void updateSnackbarMessage() {
-    messageSnackbarHelper.showMessage(
-        this,
-        arcoreActive
-            ? "ARCore is active.\nSearch for plane, then tap to place a 3D model."
-            : "ARCore is paused.\nCamera effects enabled.");
-  }
 
   // Called when starting non-AR mode or switching to non-AR mode.
   // Also called when app starts in AR mode, or resumes in AR mode.
@@ -918,27 +899,29 @@ public class SharedCameraActivity extends AppCompatActivity
 
       landmarksHelper.addLandmarks(pointCloudRenderer.getAllPoints(pointCloud));
 
+      cameraTracking++;
 
-      //Pose camPos = camera.getDisplayOrientedPose();
-      //landmarksHelper.addCameraLandMark(camPos.tx(), camPos.ty());
-    }
-
-
-    Handler cameraLMThread;
-    Runnable cameraLMRunner = new Runnable() {
-      @Override
-      public void run() {
+      if (cameraTracking > 30) {
+        cameraTracking = 0;
         Pose camPos = camera.getDisplayOrientedPose();
         landmarksHelper.addCameraLandMark(camPos.tx(), camPos.ty());
-        mainThreadHandler.postDelayed(this, 300);
       }
-    };
-
-
-    if (!cameraLMRunning){
-      cameraLMRunner.run();
-      cameraLMRunning = true;
     }
+
+
+//    if (!cameraLMRunning){
+//      Handler cameraLMHandler = new Handler();
+//      Runnable cameraLMRunner = new Runnable() {
+//        @Override
+//        public void run() {
+//          Pose camPos = camera.getDisplayOrientedPose();
+//          landmarksHelper.addCameraLandMark(camPos.tx(), camPos.ty());
+//          cameraLMHandler.postDelayed(this, 300);
+//        }
+//      };
+//      cameraLMRunner.run();
+//      cameraLMRunning = true;
+//    }
 
 
     // If we detected any plane and snackbar is visible, then hide the snackbar.
@@ -958,6 +941,7 @@ public class SharedCameraActivity extends AppCompatActivity
         sharedSession.getAllTrackables(Plane.class), camera.getDisplayOrientedPose(), projmtx);
   }
 
+  int cameraTracking = 0;
 
 
   private boolean isARCoreSupportedAndUpToDate() {

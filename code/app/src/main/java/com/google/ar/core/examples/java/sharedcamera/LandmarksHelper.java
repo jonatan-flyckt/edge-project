@@ -11,6 +11,8 @@ public class LandmarksHelper {
     private static final int FLOATS_PER_POINT = 4; // X,Y,Z,confidence.
     private static final int BYTES_PER_POINT = BYTES_PER_FLOAT * FLOATS_PER_POINT;
 
+    private int landMarkArraySize = 30000;
+
     public static ArrayList<Landmark> landMarkArray = new ArrayList<>(10000);
 
     public static ArrayList<Landmark> cameraLandMarkArray = new ArrayList<>(1000);
@@ -80,19 +82,48 @@ public class LandmarksHelper {
 
         Log.d("STUFF", "--------------------------------------------------");
     }
-    
+
+    public boolean isBeingCleaned = false;
 
     public void cleanLandmarkArray() {
 
+        isBeingCleaned = true;
+        purgeLandmarkArraySize();
+        purgeLandMarkArrayOutliers();
+        isBeingCleaned = false;
+    }
+
+    public void purgeLandmarkArraySize() {
         Collections.sort(landMarkArray, (o1, o2) -> Float.compare(o2.con, o1.con));
 
-        if (landMarkArray.size() > 10000) {
-            landMarkArray.subList(10000, landMarkArray.size()-1).clear();
+        if (landMarkArray.size() > landMarkArraySize) {
+            landMarkArray.subList(landMarkArraySize, landMarkArray.size()-1).clear();
         }
+    }
 
+    public void purgeLandMarkArrayOutliers() {
+
+        int percentile = 10;
+
+        Collections.sort(landMarkArray, (o1, o2) -> Float.compare(o2.x, o1.x));
+
+        landMarkArray.subList(0, landMarkArray.size() / percentile).clear();
+        landMarkArray.subList(landMarkArray.size() - landMarkArray.size() / percentile, landMarkArray.size() - 1).clear();
+
+        Collections.sort(landMarkArray, (o1, o2) -> Float.compare(o2.y, o1.y));
+
+        landMarkArray.subList(0, landMarkArray.size() / percentile).clear();
+        landMarkArray.subList(landMarkArray.size() - landMarkArray.size() / percentile, landMarkArray.size() - 1).clear();
     }
 
     public void increaseConfidenceThreshold() {
         this.confidenceThreshold += 0.05;
     }
 }
+
+
+
+
+
+
+

@@ -29,12 +29,16 @@ public class PlotView extends View {
 
     public LandmarksHelper landmarksHelper;
 
+    boolean isFirstTime = true;
 
     public void updateExtremeLandmarks(ArrayList<LandmarksHelper.Landmark> landmarks, ArrayList<LandmarksHelper.Landmark> cameraLandmarks){
-        lowX = landmarks.get(0).x;
-        highX = landmarks.get(0).x;
-        lowY = landmarks.get(0).y;
-        highY = landmarks.get(0).y;
+        if (isFirstTime) {
+            isFirstTime = false;
+            lowX = landmarks.get(0).x;
+            highX = landmarks.get(0).x;
+            lowY = landmarks.get(0).y;
+            highY = landmarks.get(0).y;
+        }
         /*lowX = 0;
         highX = 0;
         lowY = 0;
@@ -177,6 +181,9 @@ public class PlotView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
 
+        if (landmarksHelper.isBeingCleaned) {
+            return;
+        }
         updatePlotSettings();
 
         super.onDraw(canvas);
@@ -212,6 +219,7 @@ public class PlotView extends View {
         CornerPathEffect corEffect = new CornerPathEffect((int)(getHeight() * 0.04 / pointScalingFactor));
         cameraPathPaint.setPathEffect(corEffect);
         ArrayList<LandmarksHelper.Landmark> cameraLandmarkPath = landmarksHelper.getCameraLandMarkArray();
+        Log.d("EH camerapath", String.valueOf(cameraLandmarkPath.size()));
         canvas.drawPath(getCameraPath(cameraLandmarkPath), cameraPathPaint);
         Point cameraPoint = scaledPointFromLandmark(cameraLandmarkPath.get(cameraLandmarkPath.size() - 1));
         canvas.drawCircle(cameraPoint.x, cameraPoint.y,cameraCircleSize /pointScalingFactor, cameraPaint);
