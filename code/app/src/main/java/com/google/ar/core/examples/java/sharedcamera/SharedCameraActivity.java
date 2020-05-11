@@ -90,6 +90,7 @@ import com.google.ar.core.examples.java.common.rendering.PointCloudRenderer;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
 import com.google.ar.core.exceptions.UnavailableException;
 import java.io.IOException;
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -423,6 +424,9 @@ public class SharedCameraActivity extends AppCompatActivity
 
     linearLayout = findViewById(R.id.linearLayout);
     plotView = new PlotView(this);
+
+    plotView.landmarksHelper = landmarksHelper;
+
     linearLayout.addView(plotView);
     this.mainThreadHandler = new Handler();
     this.plottingManager.run();
@@ -908,7 +912,12 @@ public class SharedCameraActivity extends AppCompatActivity
     try (PointCloud pointCloud = frame.acquirePointCloud()) {
       pointCloudRenderer.update(pointCloud);
       pointCloudRenderer.draw(viewmtx, projmtx);
+
+      landmarksHelper.addLandmarks(pointCloudRenderer.getAllPoints(pointCloud));
     }
+
+
+
 
     // If we detected any plane and snackbar is visible, then hide the snackbar.
     if (messageSnackbarHelper.isShowing()) {
@@ -920,28 +929,11 @@ public class SharedCameraActivity extends AppCompatActivity
       }
     }
 
-    Log.d("Camera pose", camera.getDisplayOrientedPose().toString());
+//    Log.d("Camera pose", camera.getDisplayOrientedPose().toString());
 
     // Visualize planes.
     planeRenderer.drawPlanes(
         sharedSession.getAllTrackables(Plane.class), camera.getDisplayOrientedPose(), projmtx);
-
-    // Visualize anchors created by touch.
-    float scaleFactor = 1.0f;
-    for (ColoredAnchor coloredAnchor : anchors) {
-      if (coloredAnchor.anchor.getTrackingState() != TrackingState.TRACKING) {
-        continue;
-      }
-      // Get the current pose of an Anchor in world space. The Anchor pose is updated
-      // during calls to sharedSession.update() as ARCore refines its estimate of the world.
-      coloredAnchor.anchor.getPose().toMatrix(anchorMatrix, 0);
-
-      // Update and draw the model and its shadow.
-      virtualObject.updateModelMatrix(anchorMatrix, scaleFactor);
-      virtualObjectShadow.updateModelMatrix(anchorMatrix, scaleFactor);
-      virtualObject.draw(viewmtx, projmtx, colorCorrectionRgba, coloredAnchor.color);
-      virtualObjectShadow.draw(viewmtx, projmtx, colorCorrectionRgba, coloredAnchor.color);
-    }
   }
 
   private boolean isARCoreSupportedAndUpToDate() {

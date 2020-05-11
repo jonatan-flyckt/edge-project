@@ -18,7 +18,12 @@ import android.content.Context;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
+import android.util.Log;
+
+import com.google.ar.core.Point;
 import com.google.ar.core.PointCloud;
+import com.google.ar.core.examples.java.sharedcamera.LandmarksHelper;
+
 import java.io.IOException;
 
 /** Renders a point cloud. */
@@ -108,6 +113,7 @@ public class PointCloudRenderer {
 
     // If the VBO is not large enough to fit the new point cloud, resize it.
     numPoints = cloud.getPoints().remaining() / FLOATS_PER_POINT;
+
     if (numPoints * BYTES_PER_POINT > vboSize) {
       while (numPoints * BYTES_PER_POINT > vboSize) {
         vboSize *= 2;
@@ -118,10 +124,19 @@ public class PointCloudRenderer {
         GLES20.GL_ARRAY_BUFFER, 0, numPoints * BYTES_PER_POINT, cloud.getPoints());
     GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
 
-
-
     ShaderUtil.checkGLError(TAG, "after update");
   }
+
+
+
+  public float[] getAllPoints(PointCloud cloud) {
+
+    float[] buffer = new float[cloud.getPoints().remaining()];
+    cloud.getPoints().get(buffer);
+
+    return buffer;
+  }
+
 
   /**
    * Renders the point cloud. ARCore point cloud is given in world space.

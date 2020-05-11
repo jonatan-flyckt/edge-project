@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.CornerPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
@@ -26,13 +27,19 @@ public class PlotView extends View {
     float plotScalingFactor, pointScalingFactor;
     int numberOfPlotPoints;
 
+    public LandmarksHelper landmarksHelper;
+
     ArrayList<LandmarksHelper.Landmark> cameraPath = tempGetCameraPoints(getContext());
 
     public void updateExtremeLandmarks(ArrayList<LandmarksHelper.Landmark> landmarks, ArrayList<LandmarksHelper.Landmark> cameraLandmarks){
-        lowX = landmarks.get(0).x;
+        /*lowX = landmarks.get(0).x;
         highX = landmarks.get(0).x;
         lowY = landmarks.get(0).y;
-        highY = landmarks.get(0).y;
+        highY = landmarks.get(0).y;*/
+        lowX = 0;
+        highX = 0;
+        lowY = 0;
+        highY = 0;
         for (LandmarksHelper.Landmark landmark: landmarks){
             if (landmark.x > highX)
                 highX = landmark.x;
@@ -90,12 +97,12 @@ public class PlotView extends View {
     public ArrayList<LandmarksHelper.Landmark> tempGetCameraPoints(Context context){
         ArrayList<LandmarksHelper.Landmark> list = new ArrayList<LandmarksHelper.Landmark>(){
             {
-                add(new LandmarksHelper.Landmark(-0.5f, 0.5f, 0f, 1f));
-                add(new LandmarksHelper.Landmark(-0.3f, 0.3f, 0f, 1f));
-                add(new LandmarksHelper.Landmark(0.1f, 0.5f, 0f, 1f));
-                add(new LandmarksHelper.Landmark(0.1f, 0.8f, 0f, 1f));
-                add(new LandmarksHelper.Landmark(0.5f, 0.2f, 0f, 1f));
-                add(new LandmarksHelper.Landmark(0.8f, -0.2f, 0f, 1f));
+                add(new LandmarksHelper.Landmark(-0.5f, 0.5f, 1f));
+                add(new LandmarksHelper.Landmark(-0.3f, 0.3f, 1f));
+                add(new LandmarksHelper.Landmark(0.1f, 0.5f, 1f));
+                add(new LandmarksHelper.Landmark(0.1f, 0.8f, 1f));
+                add(new LandmarksHelper.Landmark(0.5f, 0.2f, 1f));
+                add(new LandmarksHelper.Landmark(0.8f, -0.2f, 1f));
             }
         };
         return list;
@@ -107,7 +114,7 @@ public class PlotView extends View {
         ArrayList<LandmarksHelper.Landmark> list = new ArrayList<LandmarksHelper.Landmark>();
         for (int i = 0; i < amount; i++){
             list.add(new LandmarksHelper.Landmark((float)(-scaling + Math.random() * (scaling*2)),
-                    (float)(-scaling + Math.random() * (scaling*2)), 0f, 1f));
+                    (float)(-scaling + Math.random() * (scaling*2)), 1f));
         }
         amount += 2;
         scaling *= 1.01;
@@ -128,7 +135,7 @@ public class PlotView extends View {
         screenHeight = getHeight();
 
         //landmarkCircleSize = pxFromDp(context, 3);
-        landmarkCircleSize = pxFromDp(context, 10);
+        landmarkCircleSize = pxFromDp(context, 4);
         cameraCircleSize = pxFromDp(context, 5);
 
         landmarkPaint = new Paint();
@@ -141,10 +148,12 @@ public class PlotView extends View {
         cameraPaint.setColor(Color.GREEN);
         cameraPathPaint = new Paint();
         cameraPathPaint.setStyle(Paint.Style.STROKE);
+        cameraPathPaint.setAntiAlias(true);
+        cameraPathPaint.setStrokeCap(Paint.Cap.ROUND);
         cameraPathPaint.setColor(Color.GREEN);
         backgroundPaint = new Paint();
         backgroundPaint.setStyle(Paint.Style.FILL);
-        backgroundPaint.setColor(Color.WHITE);
+        backgroundPaint.setColor(Color.TRANSPARENT);
     }
 
     private Path getCameraPath(ArrayList<LandmarksHelper.Landmark> landmarks){
@@ -173,18 +182,30 @@ public class PlotView extends View {
 
 
         //Draw all landmark points:
-        for (LandmarksHelper.Landmark landmark: tempGetLandmarks(getContext())){
+        /*for (LandmarksHelper.Landmark landmark: tempGetLandmarks(getContext())){
+            Point point = scaledPointFromLandmark(landmark);
+            RadialGradient gradient = new RadialGradient((float)point.x, (float)point.y, landmarkCircleSize / pointScalingFactor,
+                    Color.RED, Color.TRANSPARENT, Shader.TileMode.CLAMP);
+            landmarkPaint.setShader(gradient);
+            canvas.drawCircle(point.x, point.y, landmarkCircleSize / pointScalingFactor, landmarkPaint);
+        }*/
+
+        ArrayList<LandmarksHelper.Landmark> list = landmarksHelper.getLandMarkArray();
+        for (LandmarksHelper.Landmark landmark: list){
             Point point = scaledPointFromLandmark(landmark);
             RadialGradient gradient = new RadialGradient((float)point.x, (float)point.y, landmarkCircleSize / pointScalingFactor,
                     Color.RED, Color.TRANSPARENT, Shader.TileMode.CLAMP);
             landmarkPaint.setShader(gradient);
             canvas.drawCircle(point.x, point.y, landmarkCircleSize / pointScalingFactor, landmarkPaint);
         }
+
         Log.d("EH", Float.toString(landmarkCircleSize));
         Log.d("EH", Float.toString(plotScalingFactor));
 
         //Draw camera path and current position
         cameraPathPaint.setStrokeWidth((cameraCircleSize / 3) / pointScalingFactor);
+        CornerPathEffect corEffect = new CornerPathEffect((int)(getHeight() * 0.04 / pointScalingFactor));
+        cameraPathPaint.setPathEffect(corEffect);
         canvas.drawPath(getCameraPath(cameraPath), cameraPathPaint);
         Point cameraPoint = scaledPointFromLandmark(cameraPath.get(cameraPath.size() - 1));
         canvas.drawCircle(cameraPoint.x, cameraPoint.y,cameraCircleSize /pointScalingFactor, cameraPaint);
