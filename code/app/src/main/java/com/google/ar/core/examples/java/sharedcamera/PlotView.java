@@ -13,6 +13,8 @@ import android.graphics.Shader;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
+
+import java.sql.Time;
 import java.util.ArrayList;
 
 
@@ -22,45 +24,11 @@ public class PlotView extends View {
     float landmarkCircleSize, cameraCircleSize;
     Path path;
 
-    //float lowX, highX, lowY, highY;
-    //float origoX, origoY;
     float plotScalingFactor, pointScalingFactor;
     int numberOfPlotPoints;
 
     public LandmarksHelper landmarksHelper;
 
-    boolean isFirstTime = true;
-
-    /*public void updateExtremeLandmarks(ArrayList<LandmarksHelper.Landmark> landmarks, ArrayList<LandmarksHelper.Landmark> cameraLandmarks){
-        if (isFirstTime) {
-            isFirstTime = false;
-            lowX = landmarks.get(0).x;
-            highX = landmarks.get(0).x;
-            lowY = landmarks.get(0).y;
-            highY = landmarks.get(0).y;
-        }
-
-        for (LandmarksHelper.Landmark landmark: landmarks){
-            if (landmark.x > highX)
-                highX = landmark.x;
-            if (landmark.x < lowX)
-                lowX = landmark.x;
-            if (landmark.y > highY)
-                highY = landmark.y;
-            if (landmark.y < lowY)
-                lowY = landmark.y;
-        }
-        for (LandmarksHelper.Landmark landmark: cameraLandmarks){
-            if (landmark.x > highX)
-                highX = landmark.x;
-            if (landmark.x < lowX)
-                lowX = landmark.x;
-            if (landmark.y > highY)
-                highY = landmark.y;
-            if (landmark.y < lowY)
-                lowY = landmark.y;
-        }
-    }*/
 
     public float setPlotScalingFactors(){
         float xDist = landmarksHelper.highX - landmarksHelper.lowX;
@@ -79,10 +47,8 @@ public class PlotView extends View {
     }
 
     public void updatePlotSettings(){
-        //updateExtremeLandmarks(landmarksHelper.getLandMarkArray(), landmarksHelper.getCameraLandMarkArray());
         plotScalingFactor = setPlotScalingFactors();
         pointScalingFactor = setPointScalingFactor();
-        //updateOrigo();
     }
 
     public Point scaledPointFromLandmark(LandmarksHelper.Landmark landmark){
@@ -91,34 +57,6 @@ public class PlotView extends View {
         return new Point((int)newX, (int)newY);
     }
 
-    public ArrayList<LandmarksHelper.Landmark> tempGetCameraPoints(Context context){
-        ArrayList<LandmarksHelper.Landmark> list = new ArrayList<LandmarksHelper.Landmark>(){
-            {
-                add(new LandmarksHelper.Landmark(-0.5f, 0.5f, 1f));
-                add(new LandmarksHelper.Landmark(-0.3f, 0.3f, 1f));
-                add(new LandmarksHelper.Landmark(0.1f, 0.5f, 1f));
-                add(new LandmarksHelper.Landmark(0.1f, 0.8f, 1f));
-                add(new LandmarksHelper.Landmark(0.5f, 0.2f, 1f));
-                add(new LandmarksHelper.Landmark(0.8f, -0.2f, 1f));
-            }
-        };
-        return list;
-    }
-
-    //private int amount = 10;
-    //private float scaling = 1.0f;
-    /*public ArrayList<LandmarksHelper.Landmark> tempGetLandmarks(Context context){
-        ArrayList<LandmarksHelper.Landmark> list = new ArrayList<LandmarksHelper.Landmark>();
-        for (int i = 0; i < amount; i++){
-            list.add(new LandmarksHelper.Landmark((float)(-scaling + Math.random() * (scaling*2)),
-                    (float)(-scaling + Math.random() * (scaling*2)), 1f));
-        }
-        amount += 2;
-        scaling *= 1.01;
-        numberOfPlotPoints = list.size();
-        return list;
-    }*/
-
     public PlotView(Context context) {
         super(context);
         DisplayMetrics displayMetrics = new DisplayMetrics();
@@ -126,12 +64,9 @@ public class PlotView extends View {
                 .getDefaultDisplay()
                 .getMetrics(displayMetrics);
 
-        //screenWidth = displayMetrics.widthPixels;
-        //screenHeight = displayMetrics.heightPixels;
         screenWidth = getWidth();
         screenHeight = getHeight();
 
-        //landmarkCircleSize = pxFromDp(context, 3);
         landmarkCircleSize = pxFromDp(context, 4);
         cameraCircleSize = pxFromDp(context, 5);
 
@@ -171,28 +106,25 @@ public class PlotView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
 
-        /*if (landmarksHelper.isBeingCleaned) {
+        /*do {
+            try {
+                Thread.sleep(50);
+            } catch (Exception e){
+                continue;
+            }
+        } while (landmarksHelper.isBeingCleaned);
+*/
+        if (landmarksHelper.isBeingCleaned)
             return;
-        }*/
+
         updatePlotSettings();
 
         super.onDraw(canvas);
         canvas.drawPaint(backgroundPaint);
 
-
-
-        //Draw all landmark points:
-        /*for (LandmarksHelper.Landmark landmark: tempGetLandmarks(getContext())){
-            Point point = scaledPointFromLandmark(landmark);
-            RadialGradient gradient = new RadialGradient((float)point.x, (float)point.y, landmarkCircleSize / pointScalingFactor,
-                    Color.RED, Color.TRANSPARENT, Shader.TileMode.CLAMP);
-            landmarkPaint.setShader(gradient);
-            canvas.drawCircle(point.x, point.y, landmarkCircleSize / pointScalingFactor, landmarkPaint);
-        }*/
-
         ArrayList<LandmarksHelper.Landmark> landmarkCopy = landmarksHelper.getLandMarkArray();
         numberOfPlotPoints = landmarkCopy.size();
-        Log.d("EH", String.valueOf(landmarkCopy.size()));
+        Log.d("EH landmarkarray size", String.valueOf(landmarkCopy.size()));
         for (LandmarksHelper.Landmark landmark: landmarkCopy){
             Point point = scaledPointFromLandmark(landmark);
             RadialGradient gradient = new RadialGradient((float)point.x, (float)point.y, landmarkCircleSize / pointScalingFactor,
@@ -201,8 +133,8 @@ public class PlotView extends View {
             canvas.drawCircle(point.x, point.y, landmarkCircleSize / pointScalingFactor, landmarkPaint);
         }
 
-        Log.d("EH", Float.toString(landmarkCircleSize));
-        Log.d("EH", Float.toString(plotScalingFactor));
+        Log.d("EH circle size", Float.toString(landmarkCircleSize));
+        Log.d("EH scaling factor", Float.toString(plotScalingFactor));
 
         //Draw camera path and current position
         cameraPathPaint.setStrokeWidth((cameraCircleSize / 3) / pointScalingFactor);

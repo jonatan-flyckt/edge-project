@@ -357,7 +357,7 @@ public class SharedCameraActivity extends AppCompatActivity
     @Override
     public void run() {
       updateChart();
-      mainThreadHandler.postDelayed(this, 1000);
+      mainThreadHandler.postDelayed(this, 100);
     }
   };
 

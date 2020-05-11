@@ -2,6 +2,8 @@ package com.google.ar.core.examples.java.sharedcamera;
 
 import android.util.Log;
 
+import com.google.ar.core.examples.java.common.rendering.PlaneRenderer;
+
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -93,30 +95,17 @@ public class LandmarksHelper {
         isBeingCleaned = true;
         purgeLandmarkArraySize();
         purgeLandMarkArrayOutliers();
-        //updateExtremePoints(landMarkArray.get(0).x, landMarkArray.get(0).x, landMarkArray.get(0).y, landMarkArray.get(0).y);
         isBeingCleaned = false;
     }
 
-    //boolean isFirstTime = true;
     public void updateExtremePoints(float lowestX, float highestX, float lowestY, float highestY){
-        /*if (isFirstTime) {
-            isFirstTime = false;
-            lowX = landMarkArray.get(0).x;
-            highX = landMarkArray.get(0).x;
-            lowY = landMarkArray.get(0).y;
-            highY = landMarkArray.get(0).y;
-        }*/
 
         lowX = lowestX;
         highX = highestX;
         lowY = lowestY;
         highY = highestY;
-        Log.d("debughighlowX", String.valueOf(lowX));
-        Log.d("debughighlowX", String.valueOf(highX));
-        Log.d("debughighlowY", String.valueOf(lowY));
-        Log.d("debughighlowY", String.valueOf(highY));
 
-        for (LandmarksHelper.Landmark landmark: cameraLandMarkArray){
+        /*for (LandmarksHelper.Landmark landmark: cameraLandMarkArray){
             if (landmark.x > highX)
                 highX = landmark.x;
             if (landmark.x < lowX)
@@ -125,11 +114,7 @@ public class LandmarksHelper {
                 highY = landmark.y;
             if (landmark.y < lowY)
                 lowY = landmark.y;
-        }
-        Log.d("debughighlowX", String.valueOf(lowX));
-        Log.d("debughighlowX", String.valueOf(highX));
-        Log.d("debughighlowY", String.valueOf(lowY));
-        Log.d("debughighlowY", String.valueOf(highY));
+        }*/
     }
 
     public void purgeLandmarkArraySize() {
@@ -137,33 +122,67 @@ public class LandmarksHelper {
 
         if (landMarkArray.size() > landMarkArraySize) {
             landMarkArray.subList(landMarkArraySize, landMarkArray.size()-1).clear();
+            Log.d("EH big fucking array", "big fucking array");
         }
     }
 
     public void purgeLandMarkArrayOutliers() {
+        int percentile = 50;
 
-        int percentile = 100;
-
+        Collections.sort(landMarkArray, (o1, o2) -> Float.compare(o1.x, o2.x));
+        float xLowPercentile = landMarkArray.get(landMarkArray.size() / percentile).x;
+        float xHighPercentile = landMarkArray.get(landMarkArray.size() - landMarkArray.size() / percentile).x;
+        int xLowIndex = 0;
+        for (Landmark landmark : landMarkArray){
+            if (landmark.x < xLowPercentile - 1)
+                xLowIndex = landMarkArray.indexOf(landmark);
+            else
+                break;
+        }
+        landMarkArray.subList(0, xLowIndex).clear();
         Collections.sort(landMarkArray, (o1, o2) -> Float.compare(o2.x, o1.x));
-        landMarkArray.subList(0, landMarkArray.size() / percentile).clear();
-        landMarkArray.subList(landMarkArray.size() - landMarkArray.size() / percentile, landMarkArray.size() - 1).clear();
+        for (Landmark landmark: landMarkArray.subList(0, 9)){
+            Log.d("topfive", String.valueOf(landmark.x));
+        }
+        Log.d("topfive", "-");
+        int xHighIndex = 0;
+        for (Landmark landmark : landMarkArray){
+            if (landmark.x > xHighPercentile + 1)
+                xHighIndex = landMarkArray.indexOf(landmark);
+            else
+                break;
+        }
+        landMarkArray.subList(0, xHighIndex).clear();
         float xLowest, xHighest;
-        xLowest = landMarkArray.get(0).x;
-        xHighest = landMarkArray.get(landMarkArray.size()-1).x;
+        xHighest = landMarkArray.get(0).x;
+        xLowest = landMarkArray.get(landMarkArray.size()-1).x;
 
-
+        Collections.sort(landMarkArray, (o1, o2) -> Float.compare(o1.y, o2.y));
+        float yLowPercentile = landMarkArray.get(landMarkArray.size() / percentile).y;
+        float yHighPercentile = landMarkArray.get(landMarkArray.size() - landMarkArray.size() / percentile).y;
+        int yLowIndex = 0;
+        for (Landmark landmark : landMarkArray){
+            if (landmark.y < yLowPercentile - 1)
+                yLowIndex = landMarkArray.indexOf(landmark);
+            else
+                break;
+        }
+        landMarkArray.subList(0, yLowIndex).clear();
         Collections.sort(landMarkArray, (o1, o2) -> Float.compare(o2.y, o1.y));
-
-        landMarkArray.subList(0, landMarkArray.size() / percentile).clear();
-        landMarkArray.subList(landMarkArray.size() - landMarkArray.size() / percentile, landMarkArray.size() - 1).clear();
+        int yHighIndex = 0;
+        for (Landmark landmark : landMarkArray){
+            if (landmark.y > yHighPercentile + 1)
+                yHighIndex = landMarkArray.indexOf(landmark);
+            else
+                break;
+        }
+        landMarkArray.subList(0, yHighIndex).clear();
         float yLowest, yHighest;
-        yLowest = landMarkArray.get(0).y;
-        yHighest = landMarkArray.get(landMarkArray.size()-1).y;
+        yHighest = landMarkArray.get(0).y;
+        yLowest = landMarkArray.get(landMarkArray.size()-1).y;
 
-        Log.d("EH array size", String.valueOf(landMarkArray.size()));
-
-        //updateExtremePoints(xLowest, xHighest, yLowest, yHighest);
-        updateExtremePoints(-5, 5, -5, 5);
+        updateExtremePoints(xLowest, xHighest, yLowest, yHighest);
+        //updateExtremePoints(-5, 5, -5, 5);
     }
 
     public void increaseConfidenceThreshold() {
