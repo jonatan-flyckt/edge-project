@@ -7,6 +7,8 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
+import android.graphics.RadialGradient;
+import android.graphics.Shader;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
@@ -107,8 +109,8 @@ public class PlotView extends View {
             list.add(new LandmarksHelper.Landmark((float)(-scaling + Math.random() * (scaling*2)),
                     (float)(-scaling + Math.random() * (scaling*2)), 0f, 1f));
         }
-        amount += 50;
-        scaling *= 1.1;
+        amount += 2;
+        scaling *= 1.01;
         numberOfPlotPoints = list.size();
         return list;
     }
@@ -125,7 +127,8 @@ public class PlotView extends View {
         screenWidth = getWidth();
         screenHeight = getHeight();
 
-        landmarkCircleSize = pxFromDp(context, 3);
+        //landmarkCircleSize = pxFromDp(context, 3);
+        landmarkCircleSize = pxFromDp(context, 10);
         cameraCircleSize = pxFromDp(context, 5);
 
         landmarkPaint = new Paint();
@@ -167,9 +170,14 @@ public class PlotView extends View {
         super.onDraw(canvas);
         canvas.drawPaint(backgroundPaint);
 
+
+
         //Draw all landmark points:
         for (LandmarksHelper.Landmark landmark: tempGetLandmarks(getContext())){
             Point point = scaledPointFromLandmark(landmark);
+            RadialGradient gradient = new RadialGradient((float)point.x, (float)point.y, landmarkCircleSize / pointScalingFactor,
+                    Color.RED, Color.TRANSPARENT, Shader.TileMode.CLAMP);
+            landmarkPaint.setShader(gradient);
             canvas.drawCircle(point.x, point.y, landmarkCircleSize / pointScalingFactor, landmarkPaint);
         }
         Log.d("EH", Float.toString(landmarkCircleSize));
