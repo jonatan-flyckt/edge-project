@@ -12,12 +12,12 @@ public class LandmarksHelper {
     public float confidenceThreshold = (float) 0.4;
 
     public static class Landmark {
-        public final int x;
-        public final int y;
-        public final int z;
-        public final int con;
+        public final float x;
+        public final float y;
+        public final float z;
+        public final float con;
 
-        public Landmark(int x, int y, int z, int con) {
+        public Landmark(float x, float y, float z, float con) {
             this.x = x;
             this.y = y;
             this.z = z;
