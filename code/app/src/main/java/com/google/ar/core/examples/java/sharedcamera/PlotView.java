@@ -29,7 +29,6 @@ public class PlotView extends View {
 
     public LandmarksHelper landmarksHelper;
 
-    ArrayList<LandmarksHelper.Landmark> cameraPath = tempGetCameraPoints(getContext());
 
     public void updateExtremeLandmarks(ArrayList<LandmarksHelper.Landmark> landmarks, ArrayList<LandmarksHelper.Landmark> cameraLandmarks){
         lowX = landmarks.get(0).x;
@@ -86,7 +85,7 @@ public class PlotView extends View {
     }
 
     public void updatePlotSettings(){
-        updateExtremeLandmarks(landmarksHelper.getLandMarkArray(), cameraPath);
+        updateExtremeLandmarks(landmarksHelper.getLandMarkArray(), landmarksHelper.getCameraLandMarkArray());
         plotScalingFactor = setPlotScalingFactors();
         pointScalingFactor = setPointScalingFactor();
         updateOrigo();
@@ -212,8 +211,9 @@ public class PlotView extends View {
         cameraPathPaint.setStrokeWidth((cameraCircleSize / 3) / pointScalingFactor);
         CornerPathEffect corEffect = new CornerPathEffect((int)(getHeight() * 0.04 / pointScalingFactor));
         cameraPathPaint.setPathEffect(corEffect);
-        canvas.drawPath(getCameraPath(cameraPath), cameraPathPaint);
-        Point cameraPoint = scaledPointFromLandmark(cameraPath.get(cameraPath.size() - 1));
+        ArrayList<LandmarksHelper.Landmark> cameraLandmarkPath = landmarksHelper.getCameraLandMarkArray();
+        canvas.drawPath(getCameraPath(cameraLandmarkPath), cameraPathPaint);
+        Point cameraPoint = scaledPointFromLandmark(cameraLandmarkPath.get(cameraLandmarkPath.size() - 1));
         canvas.drawCircle(cameraPoint.x, cameraPoint.y,cameraCircleSize /pointScalingFactor, cameraPaint);
     }
 

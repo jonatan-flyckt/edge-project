@@ -72,6 +72,7 @@ import com.google.ar.core.Plane;
 import com.google.ar.core.Point;
 import com.google.ar.core.Point.OrientationMode;
 import com.google.ar.core.PointCloud;
+import com.google.ar.core.Pose;
 import com.google.ar.core.Session;
 import com.google.ar.core.SharedCamera;
 import com.google.ar.core.Trackable;
@@ -218,6 +219,8 @@ public class SharedCameraActivity extends AppCompatActivity
   // Egna saker --------------------------------------------------------------------------------
 
   private final LandmarksHelper landmarksHelper = new LandmarksHelper();
+
+  private boolean cameraLMRunning = false;
 
   // Camera device state callback.
   private final CameraDevice.StateCallback cameraDeviceCallback =
@@ -914,9 +917,28 @@ public class SharedCameraActivity extends AppCompatActivity
       pointCloudRenderer.draw(viewmtx, projmtx);
 
       landmarksHelper.addLandmarks(pointCloudRenderer.getAllPoints(pointCloud));
+
+
+      //Pose camPos = camera.getDisplayOrientedPose();
+      //landmarksHelper.addCameraLandMark(camPos.tx(), camPos.ty());
     }
 
 
+    Handler cameraLMThread;
+    Runnable cameraLMRunner = new Runnable() {
+      @Override
+      public void run() {
+        Pose camPos = camera.getDisplayOrientedPose();
+        landmarksHelper.addCameraLandMark(camPos.tx(), camPos.ty());
+        mainThreadHandler.postDelayed(this, 300);
+      }
+    };
+
+
+    if (!cameraLMRunning){
+      cameraLMRunner.run();
+      cameraLMRunning = true;
+    }
 
 
     // If we detected any plane and snackbar is visible, then hide the snackbar.
@@ -935,6 +957,8 @@ public class SharedCameraActivity extends AppCompatActivity
     planeRenderer.drawPlanes(
         sharedSession.getAllTrackables(Plane.class), camera.getDisplayOrientedPose(), projmtx);
   }
+
+
 
   private boolean isARCoreSupportedAndUpToDate() {
     // Make sure ARCore is installed and supported on this device.

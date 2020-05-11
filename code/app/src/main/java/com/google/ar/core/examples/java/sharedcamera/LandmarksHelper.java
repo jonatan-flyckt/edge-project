@@ -13,12 +13,15 @@ public class LandmarksHelper {
 
     public static ArrayList<Landmark> landMarkArray = new ArrayList<>(10000);
 
+    public static ArrayList<Landmark> cameraLandMarkArray = new ArrayList<>(1000);
+
 //    public ArrayList<Landmark> landMarkCacheArray = new ArrayList<>(1000);
 
     public float confidenceThreshold = (float) 0.4;
 
     public LandmarksHelper() {
         landMarkArray.add(new Landmark(0, 0, 1));
+        cameraLandMarkArray.add(new Landmark(0, 0, 1));
     }
 
     private int cleanCount = 0;
@@ -37,6 +40,14 @@ public class LandmarksHelper {
 
     public ArrayList<Landmark> getLandMarkArray(){
         return new ArrayList<Landmark>(landMarkArray);
+    }
+
+    public ArrayList<Landmark> getCameraLandMarkArray(){
+        return new ArrayList<Landmark>(cameraLandMarkArray);
+    }
+
+    public void addCameraLandMark(float x, float y){
+        cameraLandMarkArray.add(new Landmark(x, y, 1));
     }
 
     public void addLandmarks(float[] pointBuffer) {
