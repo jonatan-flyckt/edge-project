@@ -1,54 +1,79 @@
 package com.google.ar.core.examples.java.sharedcamera;
 
+import android.util.Log;
+
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class LandmarksHelper {
 
-    // 1000 is 3 decimals, 100 is 2 etc.
-    private static final int FLOAT_TO_INT_DECIMALS = 1000;
+    private static final int BYTES_PER_FLOAT = Float.SIZE / 8;
+    private static final int FLOATS_PER_POINT = 4; // X,Y,Z,confidence.
+    private static final int BYTES_PER_POINT = BYTES_PER_FLOAT * FLOATS_PER_POINT;
 
-    public ArrayList<Landmark> landMarkArray = new ArrayList<>();
+    public static ArrayList<Landmark> landMarkArray = new ArrayList<>(10000);
+
+//    public ArrayList<Landmark> landMarkCacheArray = new ArrayList<>(1000);
 
     public float confidenceThreshold = (float) 0.4;
 
-    private static class Landmark {
-        public final int x;
-        public final int y;
-        public final int z;
-        public final int con;
+    private int cleanCount = 0;
 
-        public Landmark(int x, int y, int z, int con) {
+    private static class Landmark {
+        public final float x;
+        public final float y;
+        public final float con;
+
+        public Landmark(float x, float y, float con) {
             this.x = x;
             this.y = y;
-            this.z = z;
             this.con = con;
         }
     }
 
-    // To round the float to 3 decimals, we convert to int.
-    public void addLandmark(float fx, float fy, float fz, float fcon) {
-        int ix = (int) fx * FLOAT_TO_INT_DECIMALS;
-        int iy = (int) fy * FLOAT_TO_INT_DECIMALS;
-        int iz = (int) fz * FLOAT_TO_INT_DECIMALS;
-        int icon = (int) fcon * FLOAT_TO_INT_DECIMALS;
+    public void addLandmarks(float[] pointBuffer) {
 
-        Landmark newLandmark = new Landmark(ix, iy, iz, icon);
-        if (!landMarkArray.contains(newLandmark)) {
+//        Log.d("Point buffer", String.valueOf(pointBuffer.length));
+
+        for (int i = 0; i < pointBuffer.length; i = i + BYTES_PER_FLOAT) {
+
+            float fx = pointBuffer[i + 0];
+            float fy = pointBuffer[i + 1];
+            float fcon = pointBuffer[i + 3];
+
+
+            Landmark newLandmark = new Landmark(fx, fy, fcon);
             landMarkArray.add(newLandmark);
         }
+
+        Log.d("STUFF", "--------------------------------------------------");
+
+        Log.d("Point buffer", String.valueOf(landMarkArray.size()));
+
+        cleanCount++;
+
+        if (cleanCount > 20) {
+            cleanCount = 0;
+            cleanLandmarkArray();
+
+            Log.d("Points after clean", String.valueOf(landMarkArray.size()));
+        }
+
+        Log.d("STUFF", "--------------------------------------------------");
+    }
+    
+
+    public void cleanLandmarkArray() {
+
+        Collections.sort(landMarkArray, (o1, o2) -> Float.compare(o2.con, o1.con));
+
+        if (landMarkArray.size() > 10000) {
+            landMarkArray.subList(10000, landMarkArray.size()-1).clear();
+        }
+
     }
 
     public void increaseConfidenceThreshold() {
         this.confidenceThreshold += 0.05;
     }
-
-    public void cleanLandmarkArray() {
-        for (Landmark landmark : landMarkArray) {
-            if (landmark.con < this.confidenceThreshold) {
-                landMarkArray.remove(landmark);
-            }
-        }
-    }
-
-
 }

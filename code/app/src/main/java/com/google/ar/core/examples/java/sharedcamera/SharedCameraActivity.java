@@ -855,8 +855,10 @@ public class SharedCameraActivity extends AppCompatActivity
       pointCloudRenderer.update(pointCloud);
       pointCloudRenderer.draw(viewmtx, projmtx);
 
-      pointCloudRenderer.getAllPoints(pointCloud);
+      landmarksHelper.addLandmarks(pointCloudRenderer.getAllPoints(pointCloud));
     }
+
+
 
 
     // If we detected any plane and snackbar is visible, then hide the snackbar.
