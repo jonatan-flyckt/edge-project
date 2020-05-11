@@ -929,7 +929,7 @@ public class SharedCameraActivity extends AppCompatActivity
       }
     }
 
-//    Log.d("Camera pose", camera.getDisplayOrientedPose().toString());
+    Log.d("Camera pose", camera.getDisplayOrientedPose().toString());
 
     // Visualize planes.
     planeRenderer.drawPlanes(

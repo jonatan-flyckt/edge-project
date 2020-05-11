@@ -17,6 +17,9 @@ public class LandmarksHelper {
 
     public float confidenceThreshold = (float) 0.4;
 
+    public LandmarksHelper() {
+        landMarkArray.add(new Landmark(0, 0, 1));
+    }
 
     private int cleanCount = 0;
 

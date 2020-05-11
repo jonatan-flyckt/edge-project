@@ -32,14 +32,14 @@ public class PlotView extends View {
     ArrayList<LandmarksHelper.Landmark> cameraPath = tempGetCameraPoints(getContext());
 
     public void updateExtremeLandmarks(ArrayList<LandmarksHelper.Landmark> landmarks, ArrayList<LandmarksHelper.Landmark> cameraLandmarks){
-        /*lowX = landmarks.get(0).x;
+        lowX = landmarks.get(0).x;
         highX = landmarks.get(0).x;
         lowY = landmarks.get(0).y;
-        highY = landmarks.get(0).y;*/
-        lowX = 0;
+        highY = landmarks.get(0).y;
+        /*lowX = 0;
         highX = 0;
         lowY = 0;
-        highY = 0;
+        highY = 0;*/
         for (LandmarksHelper.Landmark landmark: landmarks){
             if (landmark.x > highX)
                 highX = landmark.x;
@@ -67,6 +67,10 @@ public class PlotView extends View {
         float yDist = highY - lowY;
         float xScale = getWidth() / xDist;
         float yScale = getHeight() / yDist;
+        Log.d("EH low X", String.valueOf(lowX));
+        Log.d("EH high X", String.valueOf(highX));
+        Log.d("EH low Y", String.valueOf(lowY));
+        Log.d("EH high Y", String.valueOf(highY));
         return Math.max(xScale, yScale);
     }
 
@@ -77,12 +81,12 @@ public class PlotView extends View {
     public void updateOrigo(){
         origoX = lowX;
         origoY = lowY;
-        Log.d("EH", Float.toString(origoX));
-        Log.d("EH", Float.toString(origoX));
+        Log.d("EH origo X", Float.toString(origoX));
+        Log.d("EH origo Y", Float.toString(origoY));
     }
 
     public void updatePlotSettings(){
-        updateExtremeLandmarks(tempGetLandmarks(getContext()), cameraPath);
+        updateExtremeLandmarks(landmarksHelper.getLandMarkArray(), cameraPath);
         plotScalingFactor = setPlotScalingFactors();
         pointScalingFactor = setPointScalingFactor();
         updateOrigo();
@@ -108,9 +112,9 @@ public class PlotView extends View {
         return list;
     }
 
-    private int amount = 10;
-    private float scaling = 1.0f;
-    public ArrayList<LandmarksHelper.Landmark> tempGetLandmarks(Context context){
+    //private int amount = 10;
+    //private float scaling = 1.0f;
+    /*public ArrayList<LandmarksHelper.Landmark> tempGetLandmarks(Context context){
         ArrayList<LandmarksHelper.Landmark> list = new ArrayList<LandmarksHelper.Landmark>();
         for (int i = 0; i < amount; i++){
             list.add(new LandmarksHelper.Landmark((float)(-scaling + Math.random() * (scaling*2)),
@@ -120,7 +124,7 @@ public class PlotView extends View {
         scaling *= 1.01;
         numberOfPlotPoints = list.size();
         return list;
-    }
+    }*/
 
     public PlotView(Context context) {
         super(context);
@@ -190,8 +194,10 @@ public class PlotView extends View {
             canvas.drawCircle(point.x, point.y, landmarkCircleSize / pointScalingFactor, landmarkPaint);
         }*/
 
-        ArrayList<LandmarksHelper.Landmark> list = landmarksHelper.getLandMarkArray();
-        for (LandmarksHelper.Landmark landmark: list){
+        ArrayList<LandmarksHelper.Landmark> landmarkCopy = landmarksHelper.getLandMarkArray();
+        numberOfPlotPoints = landmarkCopy.size();
+        Log.d("EH", String.valueOf(landmarkCopy.size()));
+        for (LandmarksHelper.Landmark landmark: landmarkCopy){
             Point point = scaledPointFromLandmark(landmark);
             RadialGradient gradient = new RadialGradient((float)point.x, (float)point.y, landmarkCircleSize / pointScalingFactor,
                     Color.RED, Color.TRANSPARENT, Shader.TileMode.CLAMP);
