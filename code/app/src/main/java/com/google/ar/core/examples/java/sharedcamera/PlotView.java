@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.CornerPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
@@ -128,7 +129,7 @@ public class PlotView extends View {
         screenHeight = getHeight();
 
         //landmarkCircleSize = pxFromDp(context, 3);
-        landmarkCircleSize = pxFromDp(context, 10);
+        landmarkCircleSize = pxFromDp(context, 4);
         cameraCircleSize = pxFromDp(context, 5);
 
         landmarkPaint = new Paint();
@@ -141,10 +142,12 @@ public class PlotView extends View {
         cameraPaint.setColor(Color.GREEN);
         cameraPathPaint = new Paint();
         cameraPathPaint.setStyle(Paint.Style.STROKE);
+        cameraPathPaint.setAntiAlias(true);
+        cameraPathPaint.setStrokeCap(Paint.Cap.ROUND);
         cameraPathPaint.setColor(Color.GREEN);
         backgroundPaint = new Paint();
         backgroundPaint.setStyle(Paint.Style.FILL);
-        backgroundPaint.setColor(Color.WHITE);
+        backgroundPaint.setColor(Color.TRANSPARENT);
     }
 
     private Path getCameraPath(ArrayList<LandmarksHelper.Landmark> landmarks){
@@ -185,6 +188,8 @@ public class PlotView extends View {
 
         //Draw camera path and current position
         cameraPathPaint.setStrokeWidth((cameraCircleSize / 3) / pointScalingFactor);
+        CornerPathEffect corEffect = new CornerPathEffect((int)(getHeight() * 0.04 / pointScalingFactor));
+        cameraPathPaint.setPathEffect(corEffect);
         canvas.drawPath(getCameraPath(cameraPath), cameraPathPaint);
         Point cameraPoint = scaledPointFromLandmark(cameraPath.get(cameraPath.size() - 1));
         canvas.drawCircle(cameraPoint.x, cameraPoint.y,cameraCircleSize /pointScalingFactor, cameraPaint);
