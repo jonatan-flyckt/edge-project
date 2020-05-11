@@ -111,6 +111,10 @@ public class LandmarksHelper {
         highX = highestX;
         lowY = lowestY;
         highY = highestY;
+        Log.d("debughighlowX", String.valueOf(lowX));
+        Log.d("debughighlowX", String.valueOf(highX));
+        Log.d("debughighlowY", String.valueOf(lowY));
+        Log.d("debughighlowY", String.valueOf(highY));
 
         for (LandmarksHelper.Landmark landmark: cameraLandMarkArray){
             if (landmark.x > highX)
@@ -122,6 +126,10 @@ public class LandmarksHelper {
             if (landmark.y < lowY)
                 lowY = landmark.y;
         }
+        Log.d("debughighlowX", String.valueOf(lowX));
+        Log.d("debughighlowX", String.valueOf(highX));
+        Log.d("debughighlowY", String.valueOf(lowY));
+        Log.d("debughighlowY", String.valueOf(highY));
     }
 
     public void purgeLandmarkArraySize() {
@@ -151,6 +159,8 @@ public class LandmarksHelper {
         float yLowest, yHighest;
         yLowest = landMarkArray.get(0).y;
         yHighest = landMarkArray.get(landMarkArray.size()-1).y;
+
+        Log.d("EH array size", String.valueOf(landMarkArray.size()));
 
         //updateExtremePoints(xLowest, xHighest, yLowest, yHighest);
         updateExtremePoints(-5, 5, -5, 5);

@@ -138,7 +138,7 @@ public class PlotView extends View {
         landmarkPaint = new Paint();
         landmarkPaint.setStyle(Paint.Style.FILL);
         landmarkPaint.setColor(Color.RED);
-        landmarkPaint.setAlpha(60);
+        landmarkPaint.setAlpha(20);
         cameraPaint = new Paint();
         cameraPaint.setStrokeWidth(cameraCircleSize);
         cameraPaint.setStyle(Paint.Style.FILL);
