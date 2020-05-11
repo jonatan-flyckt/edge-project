@@ -22,8 +22,8 @@ public class PlotView extends View {
     float landmarkCircleSize, cameraCircleSize;
     Path path;
 
-    float lowX, highX, lowY, highY;
-    float origoX, origoY;
+    //float lowX, highX, lowY, highY;
+    //float origoX, origoY;
     float plotScalingFactor, pointScalingFactor;
     int numberOfPlotPoints;
 
@@ -31,7 +31,7 @@ public class PlotView extends View {
 
     boolean isFirstTime = true;
 
-    public void updateExtremeLandmarks(ArrayList<LandmarksHelper.Landmark> landmarks, ArrayList<LandmarksHelper.Landmark> cameraLandmarks){
+    /*public void updateExtremeLandmarks(ArrayList<LandmarksHelper.Landmark> landmarks, ArrayList<LandmarksHelper.Landmark> cameraLandmarks){
         if (isFirstTime) {
             isFirstTime = false;
             lowX = landmarks.get(0).x;
@@ -39,10 +39,7 @@ public class PlotView extends View {
             lowY = landmarks.get(0).y;
             highY = landmarks.get(0).y;
         }
-        /*lowX = 0;
-        highX = 0;
-        lowY = 0;
-        highY = 0;*/
+
         for (LandmarksHelper.Landmark landmark: landmarks){
             if (landmark.x > highX)
                 highX = landmark.x;
@@ -63,17 +60,17 @@ public class PlotView extends View {
             if (landmark.y < lowY)
                 lowY = landmark.y;
         }
-    }
+    }*/
 
     public float setPlotScalingFactors(){
-        float xDist = highX - lowX;
-        float yDist = highY - lowY;
+        float xDist = landmarksHelper.highX - landmarksHelper.lowX;
+        float yDist = landmarksHelper.highY - landmarksHelper.lowY;
         float xScale = getWidth() / xDist;
         float yScale = getHeight() / yDist;
-        Log.d("EH low X", String.valueOf(lowX));
-        Log.d("EH high X", String.valueOf(highX));
-        Log.d("EH low Y", String.valueOf(lowY));
-        Log.d("EH high Y", String.valueOf(highY));
+        Log.d("EH low X", String.valueOf(landmarksHelper.lowX));
+        Log.d("EH high X", String.valueOf(landmarksHelper.highX));
+        Log.d("EH low Y", String.valueOf(landmarksHelper.lowY));
+        Log.d("EH high Y", String.valueOf(landmarksHelper.highY));
         return Math.max(xScale, yScale);
     }
 
@@ -81,23 +78,16 @@ public class PlotView extends View {
         return (float)Math.pow(numberOfPlotPoints, 0.1);
     }
 
-    public void updateOrigo(){
-        origoX = lowX;
-        origoY = lowY;
-        Log.d("EH origo X", Float.toString(origoX));
-        Log.d("EH origo Y", Float.toString(origoY));
-    }
-
     public void updatePlotSettings(){
-        updateExtremeLandmarks(landmarksHelper.getLandMarkArray(), landmarksHelper.getCameraLandMarkArray());
+        //updateExtremeLandmarks(landmarksHelper.getLandMarkArray(), landmarksHelper.getCameraLandMarkArray());
         plotScalingFactor = setPlotScalingFactors();
         pointScalingFactor = setPointScalingFactor();
-        updateOrigo();
+        //updateOrigo();
     }
 
     public Point scaledPointFromLandmark(LandmarksHelper.Landmark landmark){
-        float newX = (landmark.x - origoX) * plotScalingFactor;
-        float newY = (landmark.y - origoY) * plotScalingFactor;
+        float newX = (landmark.x - landmarksHelper.lowX) * plotScalingFactor;
+        float newY = (landmark.y - landmarksHelper.lowY) * plotScalingFactor;
         return new Point((int)newX, (int)newY);
     }
 
@@ -181,9 +171,9 @@ public class PlotView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
 
-        if (landmarksHelper.isBeingCleaned) {
+        /*if (landmarksHelper.isBeingCleaned) {
             return;
-        }
+        }*/
         updatePlotSettings();
 
         super.onDraw(canvas);
