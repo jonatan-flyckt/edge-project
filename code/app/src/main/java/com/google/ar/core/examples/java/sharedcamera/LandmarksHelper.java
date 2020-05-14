@@ -2,8 +2,6 @@ package com.google.ar.core.examples.java.sharedcamera;
 
 import android.util.Log;
 
-import com.google.ar.core.examples.java.common.rendering.PlaneRenderer;
-
 import java.util.ArrayList;
 import java.util.Collections;
 
