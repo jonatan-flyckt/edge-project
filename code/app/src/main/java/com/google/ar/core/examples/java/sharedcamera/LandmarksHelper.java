@@ -88,7 +88,7 @@ public class LandmarksHelper {
 
     public void cleanLandmarks() {
         isBeingCleaned = true;
-        refineGridLandmarks(500);
+        refineGridLandmarks(1000);
         removeGridsWithFewPoints(50);
         updateExtremePoints();
         isBeingCleaned = false;
