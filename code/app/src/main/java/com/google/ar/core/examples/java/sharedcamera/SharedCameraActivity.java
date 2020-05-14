@@ -20,7 +20,6 @@ package com.google.ar.core.examples.java.sharedcamera;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 
 import android.content.Context;
 import android.graphics.ImageFormat;
@@ -37,22 +36,15 @@ import android.media.Image;
 import android.media.ImageReader;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
-import android.opengl.Matrix;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.ConditionVariable;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.os.Looper;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.Size;
-import android.view.MotionEvent;
 import android.view.Surface;
-import android.widget.LinearLayout;
 import android.widget.Switch;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.ar.core.Anchor;
@@ -60,37 +52,24 @@ import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Camera;
 import com.google.ar.core.Config;
 import com.google.ar.core.Frame;
-import com.google.ar.core.HitResult;
-import com.google.ar.core.Plane;
-import com.google.ar.core.Point;
-import com.google.ar.core.Point.OrientationMode;
 import com.google.ar.core.PointCloud;
 import com.google.ar.core.Pose;
 import com.google.ar.core.Session;
 import com.google.ar.core.SharedCamera;
-import com.google.ar.core.Trackable;
 import com.google.ar.core.TrackingState;
 import com.google.ar.core.examples.java.common.helpers.CameraPermissionHelper;
 import com.google.ar.core.examples.java.common.helpers.DisplayRotationHelper;
 import com.google.ar.core.examples.java.common.helpers.FullScreenHelper;
-import com.google.ar.core.examples.java.common.helpers.SnackbarHelper;
-import com.google.ar.core.examples.java.common.helpers.TapHelper;
 import com.google.ar.core.examples.java.common.helpers.TrackingStateHelper;
 import com.google.ar.core.examples.java.common.rendering.BackgroundRenderer;
-import com.google.ar.core.examples.java.common.rendering.ObjectRenderer;
-import com.google.ar.core.examples.java.common.rendering.ObjectRenderer.BlendMode;
-import com.google.ar.core.examples.java.common.rendering.PlaneRenderer;
 import com.google.ar.core.examples.java.common.rendering.PointCloudRenderer;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
 import com.google.ar.core.exceptions.UnavailableException;
 import java.io.IOException;
-import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -110,11 +89,27 @@ import javax.microedition.khronos.opengles.GL10;
  *   <li>Requesting CAMERA_PERMISSION when app starts, and each time the app is resumed
  * </ul>
  */
+
+
 public class SharedCameraActivity extends AppCompatActivity
     implements GLSurfaceView.Renderer,
         ImageReader.OnImageAvailableListener,
         SurfaceTexture.OnFrameAvailableListener {
   private static final String TAG = SharedCameraActivity.class.getSimpleName();
+
+  // Egna saker --------------------------------------------------------------------------------
+
+  private final LandmarksHelper landmarksHelper = new LandmarksHelper();
+  int cameraTracking = 0;
+
+  private Handler mainThreadHandler;
+  private Runnable plottingManager = new Runnable() {
+    @Override
+    public void run() {
+      updateChart();
+      mainThreadHandler.postDelayed(this, 100);
+    }
+  };
 
   // Whether the app is currently in AR mode. Initial value determines initial state.
   private boolean arMode = false;
@@ -168,21 +163,12 @@ public class SharedCameraActivity extends AppCompatActivity
   private ImageReader cpuImageReader;
 
   // Various helper classes, see hello_ar_java sample to learn more.
-  private final SnackbarHelper messageSnackbarHelper = new SnackbarHelper();
   private DisplayRotationHelper displayRotationHelper;
   private final TrackingStateHelper trackingStateHelper = new TrackingStateHelper(this);
-  private TapHelper tapHelper;
 
   // Renderers, see hello_ar_java sample to learn more.
   private final BackgroundRenderer backgroundRenderer = new BackgroundRenderer();
-  private final ObjectRenderer virtualObject = new ObjectRenderer();
-  private final ObjectRenderer virtualObjectShadow = new ObjectRenderer();
-  private final PlaneRenderer planeRenderer = new PlaneRenderer();
   private final PointCloudRenderer pointCloudRenderer = new PointCloudRenderer();
-
-  // Temporary matrix allocated here to reduce number of allocations for each frame.
-  private final float[] anchorMatrix = new float[16];
-  private static final float[] DEFAULT_COLOR = new float[] {0f, 0f, 0f, 0f};
 
   // Anchors created from taps, see hello_ar_java sample to learn more.
   private final ArrayList<ColoredAnchor> anchors = new ArrayList<>();
@@ -208,12 +194,6 @@ public class SharedCameraActivity extends AppCompatActivity
       this.color = color4f;
     }
   }
-
-  // Egna saker --------------------------------------------------------------------------------
-
-  private final LandmarksHelper landmarksHelper = new LandmarksHelper();
-
-  private boolean cameraLMRunning = false;
 
   // Camera device state callback.
   private final CameraDevice.StateCallback cameraDeviceCallback =
@@ -343,25 +323,6 @@ public class SharedCameraActivity extends AppCompatActivity
         }
       };
 
-
-
-
-
-  //ScatterChart chart;
-
-
-
-
-  private Handler mainThreadHandler;
-  private Runnable plottingManager = new Runnable() {
-    @Override
-    public void run() {
-      updateChart();
-      mainThreadHandler.postDelayed(this, 100);
-    }
-  };
-
-
   public void updateChart(){
     plotView.invalidate();
   }
@@ -389,8 +350,6 @@ public class SharedCameraActivity extends AppCompatActivity
 
     // Helpers, see hello_ar_java sample to learn more.
     displayRotationHelper = new DisplayRotationHelper(this);
-    tapHelper = new TapHelper(this);
-    surfaceView.setOnTouchListener(tapHelper);
 
     // Switch to allow pausing and resuming of ARCore.
     Switch arcoreSwitch = findViewById(R.id.arcore_switch);
@@ -410,10 +369,6 @@ public class SharedCameraActivity extends AppCompatActivity
           }
         });
 
-    messageSnackbarHelper.setMaxLines(4);
-
-
-
 
     linearLayout = findViewById(R.id.linearLayout);
     plotView = new PlotView(this);
@@ -424,10 +379,6 @@ public class SharedCameraActivity extends AppCompatActivity
     this.mainThreadHandler = new Handler();
     this.plottingManager.run();
   }
-
-
-
-
 
 
   private synchronized void waitUntilCameraCaptureSessionIsActive() {
@@ -772,17 +723,7 @@ public class SharedCameraActivity extends AppCompatActivity
     try {
       // Create the camera preview image texture. Used in non-AR and AR mode.
       backgroundRenderer.createOnGlThread(this);
-      planeRenderer.createOnGlThread(this, "models/trigrid.png");
       pointCloudRenderer.createOnGlThread(this);
-
-      virtualObject.createOnGlThread(this, "models/andy.obj", "models/andy.png");
-      virtualObject.setMaterialProperties(0.0f, 2.0f, 0.5f, 6.0f);
-
-      virtualObjectShadow.createOnGlThread(
-          this, "models/andy_shadow.obj", "models/andy_shadow.png");
-      virtualObjectShadow.setBlendMode(BlendMode.Shadow);
-      virtualObjectShadow.setMaterialProperties(1.0f, 0.0f, 0.0f, 1.0f);
-
       openCamera();
     } catch (IOException e) {
       Log.e(TAG, "Failed to read an asset file", e);
@@ -866,7 +807,7 @@ public class SharedCameraActivity extends AppCompatActivity
     isGlAttached = true;
 
     // If frame is ready, render camera preview image to the GL surface.
-    backgroundRenderer.draw(frame); // <----------------------------------------------------------
+    backgroundRenderer.draw(frame);
 
     // Keep the screen unlocked while tracking, but allow it to lock when tracking stops.
     trackingStateHelper.updateKeepScreenOnFlag(camera.getTrackingState());
@@ -911,40 +852,8 @@ public class SharedCameraActivity extends AppCompatActivity
       }
     }
 
-
-//    if (!cameraLMRunning){
-//      Handler cameraLMHandler = new Handler();
-//      Runnable cameraLMRunner = new Runnable() {
-//        @Override
-//        public void run() {
-//          Pose camPos = camera.getDisplayOrientedPose();
-//          landmarksHelper.addCameraLandMark(camPos.tx(), camPos.ty());
-//          cameraLMHandler.postDelayed(this, 300);
-//        }
-//      };
-//      cameraLMRunner.run();
-//      cameraLMRunning = true;
-//    }
-
-
-    // If we detected any plane and snackbar is visible, then hide the snackbar.
-    if (messageSnackbarHelper.isShowing()) {
-      for (Plane plane : sharedSession.getAllTrackables(Plane.class)) {
-        if (plane.getTrackingState() == TrackingState.TRACKING) {
-          messageSnackbarHelper.hide(this);
-          break;
-        }
-      }
-    }
-
     Log.d("Camera pose", camera.getDisplayOrientedPose().toString());
-
-    // Visualize planes.
-    planeRenderer.drawPlanes(
-        sharedSession.getAllTrackables(Plane.class), camera.getDisplayOrientedPose(), projmtx);
   }
-
-  int cameraTracking = 0;
 
 
   private boolean isARCoreSupportedAndUpToDate() {
