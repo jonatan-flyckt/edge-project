@@ -18,16 +18,20 @@ public class LandmarksHelper {
     ArrayList<String> zonesUpdatedThisIteration = new ArrayList<String>();
 
     public LandmarksHelper() {
-        lowX = -7;
-        lowY = -7;
-        highX = 7;
-        highY = 7;
+        lowX = 0;
+        lowY = 0;
+        highX = 0;
+        highY = 0;
+        camLowX = 0;
+        camHighX = 0;
+        camLowY = 0;
+        camHighY = 0;
         cameraLandMarkArray.add(new Landmark(0, 0, 1));
     }
 
     private int cleanCount = 0;
 
-    float lowX, highX, lowY, highY;
+    float lowX, highX, lowY, highY, camLowX, camHighX, camLowY, camHighY;
 
     public static class Landmark {
         public final float x;
@@ -47,6 +51,14 @@ public class LandmarksHelper {
 
     public void addCameraLandMark(float x, float y){
         cameraLandMarkArray.add(new Landmark(x, y, 1));
+        if (x > camHighX)
+            camHighX = x;
+        if (x < camLowX)
+            camLowX = x;
+        if (y > camHighY)
+            camHighY = y;
+        if (y < camLowY)
+            camLowY = y;
     }
 
     public void addLandmarks(float[] pointBuffer) {
@@ -136,7 +148,7 @@ public class LandmarksHelper {
                     gridInfo.highX = landmark.x;
                 if (landmark.y < gridInfo.lowY)
                     gridInfo.lowY = landmark.y;
-                if (landmark.y < gridInfo.highY)
+                if (landmark.y > gridInfo.highY)
                     gridInfo.highY = landmark.y;
             }
             gridInfo.confidence = confSum / gridInfo.landmarks.size();

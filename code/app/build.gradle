@@ -18,7 +18,7 @@ android {
         // Camera2 API requires minSdkVersion >= 21.
         // AR Optional apps must declare minSdkVersion >= 14.
         // AR Required apps must declare minSdkVersion >= 24.
-        minSdkVersion 21
+        minSdkVersion 26
         targetSdkVersion 28
         versionCode 1
         versionName setVersionName()

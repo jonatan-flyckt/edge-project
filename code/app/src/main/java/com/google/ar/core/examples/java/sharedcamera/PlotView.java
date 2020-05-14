@@ -30,10 +30,19 @@ public class PlotView extends View {
 
 
     public float setPlotScalingFactors(){
-        float xDist = landmarksHelper.highX - landmarksHelper.lowX;
-        float yDist = landmarksHelper.highY - landmarksHelper.lowY;
+        float xDist = Math.max(landmarksHelper.highX, landmarksHelper.camHighX) - Math.min(landmarksHelper.lowX, landmarksHelper.camLowX) * 1.2f;
+        float yDist = Math.max(landmarksHelper.highY, landmarksHelper.camHighY) - Math.min(landmarksHelper.lowY, landmarksHelper.camLowY) * 1.2f;
         float xScale = getWidth() / xDist;
         float yScale = getHeight() / yDist;
+        Log.d("scale highX:", String.valueOf(landmarksHelper.highX));
+        Log.d("scale highY:", String.valueOf(landmarksHelper.highY));
+        Log.d("scale lowX:", String.valueOf(landmarksHelper.lowX));
+        Log.d("scale lowY:", String.valueOf(landmarksHelper.lowY));
+        Log.d("scale width:", String.valueOf(getWidth()));
+        Log.d("scale height:", String.valueOf(getHeight()));
+        Log.d("scale X:", String.valueOf(xScale));
+        Log.d("scale Y:", String.valueOf(yScale));
+        Log.d("scale", "------");
         return Math.max(xScale, yScale);
     }
 
@@ -63,24 +72,31 @@ public class PlotView extends View {
         screenHeight = getHeight();
 
         landmarkCircleSize = pxFromDp(context, 4);
-        cameraCircleSize = pxFromDp(context, 5);
+        cameraCircleSize = pxFromDp(context, 7);
 
         landmarkPaint = new Paint();
         landmarkPaint.setStyle(Paint.Style.FILL);
-        landmarkPaint.setColor(Color.RED);
         landmarkPaint.setAlpha(25);
         cameraPaint = new Paint();
         cameraPaint.setStrokeWidth(cameraCircleSize);
         cameraPaint.setStyle(Paint.Style.FILL);
-        cameraPaint.setColor(Color.GREEN);
+        cameraPaint.setColor(Color.CYAN);
         cameraPathPaint = new Paint();
         cameraPathPaint.setStyle(Paint.Style.STROKE);
         cameraPathPaint.setAntiAlias(true);
         cameraPathPaint.setStrokeCap(Paint.Cap.ROUND);
-        cameraPathPaint.setColor(Color.GREEN);
+        cameraPathPaint.setColor(Color.CYAN);
         backgroundPaint = new Paint();
         backgroundPaint.setStyle(Paint.Style.FILL);
         backgroundPaint.setColor(Color.TRANSPARENT);
+    }
+
+    String colorFromConfidence(float confidence){
+        String[] colors = {"#ff0000", "#ff5100", "#ff7700", "#ff9900", "#ffc400", "#ffe600", "#eaff00", "#b3ff00", "#80ff00", "#00ff00"};
+        int colorPos = (int) (Math.pow(confidence, 2) * 10);
+        if (confidence == 10)
+            return colors[9];
+        return colors[colorPos];
     }
 
     private Path getCameraPath(ArrayList<LandmarksHelper.Landmark> landmarks){
@@ -114,7 +130,7 @@ public class PlotView extends View {
                 for (LandmarksHelper.Landmark landmark : landmarkArrayList) {
                     Point point = scaledPointFromLandmark(landmark);
                     RadialGradient gradient = new RadialGradient((float) point.x, (float) point.y, landmarkCircleSize / pointScalingFactor,
-                            Color.RED, Color.TRANSPARENT, Shader.TileMode.CLAMP);
+                            Color.parseColor(colorFromConfidence(landmark.con)), Color.TRANSPARENT, Shader.TileMode.CLAMP);
                     landmarkPaint.setShader(gradient);
                     canvas.drawCircle(point.x, point.y, landmarkCircleSize / pointScalingFactor, landmarkPaint);
                     pointSum++;
