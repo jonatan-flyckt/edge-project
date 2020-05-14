@@ -71,12 +71,12 @@ public class PlotView extends View {
         screenWidth = getWidth();
         screenHeight = getHeight();
 
-        landmarkCircleSize = pxFromDp(context, 4);
-        cameraCircleSize = pxFromDp(context, 7);
+        landmarkCircleSize = pxFromDp(context, 3);
+        cameraCircleSize = pxFromDp(context, 9);
 
         landmarkPaint = new Paint();
         landmarkPaint.setStyle(Paint.Style.FILL);
-        landmarkPaint.setAlpha(25);
+        landmarkPaint.setAlpha(10);
         cameraPaint = new Paint();
         cameraPaint.setStrokeWidth(cameraCircleSize);
         cameraPaint.setStyle(Paint.Style.FILL);

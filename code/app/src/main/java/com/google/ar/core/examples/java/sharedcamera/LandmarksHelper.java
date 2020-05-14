@@ -4,6 +4,7 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -69,8 +70,6 @@ public class LandmarksHelper {
             float fy = pointBuffer[i + 2];
             float fcon = pointBuffer[i + 3];
 
-
-            isBeingCleaned = true;
             if (fx < highX+1 && fx > lowX-1 && fy < highY+1 && fy > lowY-1 && fcon > 0.3) {
                 Landmark newLandmark = new Landmark(fx, fy, fcon);
                 String key = keyFromGridBounds((int) newLandmark.x, (int) newLandmark.x + 1, (int) newLandmark.y, (int) newLandmark.y + 1);
@@ -83,27 +82,52 @@ public class LandmarksHelper {
                 if (!zonesUpdatedThisIteration.contains(key))
                     zonesUpdatedThisIteration.add(key);
             }
-            isBeingCleaned = false;
         }
 
         cleanCount++;
 
-        if (cleanCount > 20) {
+        if (cleanCount > 50) {
             cleanCount = 0;
             cleanLandmarks();
             zonesUpdatedThisIteration.clear();
-
         }
     }
 
-    public boolean isBeingCleaned = false;
-
     public void cleanLandmarks() {
-        isBeingCleaned = true;
-        refineGridLandmarks(1000);
+        int limitPerZone = 1500;
+        //clearPointsInCloseProximity(0.02f, limitPerZone);
+        refineGridLandmarks(limitPerZone);
         removeGridsWithFewPoints(50);
         updateExtremePoints();
-        isBeingCleaned = false;
+    }
+
+    void clearPointsInCloseProximity(float meters, int limitPerZone){
+        for (String key: zonesUpdatedThisIteration) {
+            GridInfo gridInfo = gridZones.get(key);
+            Collections.sort(gridInfo.landmarks, (o1, o2) -> Float.compare(o2.con, o1.con));
+            int j = 0;
+            for (int i = limitPerZone; i > 0; i--){
+                while(j < gridInfo.landmarks.size()) {
+                    float x = gridInfo.landmarks.get(j).x;
+                    float y = gridInfo.landmarks.get(j).y;
+                    float con = gridInfo.landmarks.get(j).con;
+
+                    Iterator<Landmark> iterator = gridInfo.landmarks.iterator();
+                    int k = 0;
+                    while (iterator.hasNext()){
+                        Landmark currentLandmark = iterator.next();
+                        if (k != j &&
+                        currentLandmark.x < x - meters && currentLandmark.x > x + meters &&
+                        currentLandmark.y < y - meters && currentLandmark.y > y + meters &&
+                        currentLandmark.con <= con)
+                            iterator.remove();
+                        k++;
+                    }
+                    j++;
+                    break;
+                }
+            }
+        }
     }
 
     void removeGridsWithFewPoints(int threshold){
@@ -135,7 +159,6 @@ public class LandmarksHelper {
 
         for (String key: zonesUpdatedThisIteration){
             GridInfo gridInfo = gridZones.get(key);
-            gridInfo.isBeingCleaned = true;
             float confSum = 0;
             Collections.sort(gridInfo.landmarks, (o1, o2) -> Float.compare(o2.con, o1.con));
             if (gridInfo.landmarks.size() > limitPerZone)
@@ -152,7 +175,6 @@ public class LandmarksHelper {
                     gridInfo.highY = landmark.y;
             }
             gridInfo.confidence = confSum / gridInfo.landmarks.size();
-            gridInfo.isBeingCleaned = false;
         }
     }
 
