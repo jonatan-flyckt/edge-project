@@ -2,15 +2,17 @@ package com.google.ar.core.examples.java.sharedcamera;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
-public class GridZones extends HashMap<String, GridInfo> {
+public class GridZones extends ConcurrentHashMap<String, GridInfo> {
 
 }
 
 class GridInfo{
 
     public GridInfo(){
-        landmarks = new ArrayList<LandmarksHelper.Landmark>();
+        landmarks = new CopyOnWriteArrayList<LandmarksHelper.Landmark>();
     }
 
     /*public void resetSums(){
@@ -21,11 +23,12 @@ class GridInfo{
 
     float confidence;
     //int landmarkCount;
-    ArrayList<LandmarksHelper.Landmark> landmarks;
+    CopyOnWriteArrayList<LandmarksHelper.Landmark> landmarks;
     //int lmSum;
     //float confRemovalThreshold;
     float lowX;
     float highX;
     float lowY;
     float highY;
+    boolean isBeingCleaned = false;
 }

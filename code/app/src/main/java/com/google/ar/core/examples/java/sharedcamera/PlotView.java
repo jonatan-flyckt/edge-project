@@ -13,11 +13,8 @@ import android.graphics.Shader;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
-
-import java.sql.Time;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 
 public class PlotView extends View {
@@ -37,10 +34,6 @@ public class PlotView extends View {
         float yDist = landmarksHelper.highY - landmarksHelper.lowY;
         float xScale = getWidth() / xDist;
         float yScale = getHeight() / yDist;
-        Log.d("EH low X", String.valueOf(landmarksHelper.lowX));
-        Log.d("EH high X", String.valueOf(landmarksHelper.highX));
-        Log.d("EH low Y", String.valueOf(landmarksHelper.lowY));
-        Log.d("EH high Y", String.valueOf(landmarksHelper.highY));
         return Math.max(xScale, yScale);
     }
 
@@ -75,7 +68,7 @@ public class PlotView extends View {
         landmarkPaint = new Paint();
         landmarkPaint.setStyle(Paint.Style.FILL);
         landmarkPaint.setColor(Color.RED);
-        landmarkPaint.setAlpha(20);
+        landmarkPaint.setAlpha(25);
         cameraPaint = new Paint();
         cameraPaint.setStrokeWidth(cameraCircleSize);
         cameraPaint.setStyle(Paint.Style.FILL);
@@ -108,60 +101,36 @@ public class PlotView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
 
-        /*do {
-            try {
-                Thread.sleep(50);
-            } catch (Exception e){
-                continue;
-            }
-        } while (landmarksHelper.isBeingCleaned);
-*/
-        if (landmarksHelper.isBeingCleaned)
-            return;
-
         updatePlotSettings();
 
         super.onDraw(canvas);
         canvas.drawPaint(backgroundPaint);
 
-
         int pointSum = 0;
-        for (String key: landmarksHelper.gridZones.keySet())
-            Log.d("checkingkey", key);
-        for (GridInfo gridInfo: landmarksHelper.gridZones.values()){
-            ArrayList<LandmarksHelper.Landmark> landmarkArrayList = new ArrayList<LandmarksHelper.Landmark>();
-            Collections.copy(landmarkArrayList, gridInfo.landmarks);
-            for (LandmarksHelper.Landmark landmark : landmarkArrayList){
-                Point point = scaledPointFromLandmark(landmark);
-                RadialGradient gradient = new RadialGradient((float)point.x, (float)point.y, landmarkCircleSize / pointScalingFactor,
-                        Color.RED, Color.TRANSPARENT, Shader.TileMode.CLAMP);
-                landmarkPaint.setShader(gradient);
-                canvas.drawCircle(point.x, point.y, landmarkCircleSize / pointScalingFactor, landmarkPaint);
-                pointSum++;
+        for (String key: landmarksHelper.gridZones.keySet()){
+            GridInfo gridInfo = landmarksHelper.gridZones.get(key);
+            try {
+                CopyOnWriteArrayList<LandmarksHelper.Landmark> landmarkArrayList = new CopyOnWriteArrayList<LandmarksHelper.Landmark>(gridInfo.landmarks);
+                for (LandmarksHelper.Landmark landmark : landmarkArrayList) {
+                    Point point = scaledPointFromLandmark(landmark);
+                    RadialGradient gradient = new RadialGradient((float) point.x, (float) point.y, landmarkCircleSize / pointScalingFactor,
+                            Color.RED, Color.TRANSPARENT, Shader.TileMode.CLAMP);
+                    landmarkPaint.setShader(gradient);
+                    canvas.drawCircle(point.x, point.y, landmarkCircleSize / pointScalingFactor, landmarkPaint);
+                    pointSum++;
+                }
+            }
+            catch (Exception e){
+                continue;
             }
         }
         numberOfPlotPoints = pointSum;
-
-        /*ArrayList<LandmarksHelper.Landmark> landmarkCopy = landmarksHelper.getLandMarkArray();
-        numberOfPlotPoints = landmarkCopy.size();
-        Log.d("EH landmarkarray size", String.valueOf(landmarkCopy.size()));
-        for (LandmarksHelper.Landmark landmark: landmarkCopy){
-            Point point = scaledPointFromLandmark(landmark);
-            RadialGradient gradient = new RadialGradient((float)point.x, (float)point.y, landmarkCircleSize / pointScalingFactor,
-                    Color.RED, Color.TRANSPARENT, Shader.TileMode.CLAMP);
-            landmarkPaint.setShader(gradient);
-            canvas.drawCircle(point.x, point.y, landmarkCircleSize / pointScalingFactor, landmarkPaint);
-        }*/
-
-        Log.d("EH circle size", Float.toString(landmarkCircleSize));
-        Log.d("EH scaling factor", Float.toString(plotScalingFactor));
 
         //Draw camera path and current position
         cameraPathPaint.setStrokeWidth((cameraCircleSize / 3) / pointScalingFactor);
         CornerPathEffect corEffect = new CornerPathEffect((int)(getHeight() * 0.04 / pointScalingFactor));
         cameraPathPaint.setPathEffect(corEffect);
         ArrayList<LandmarksHelper.Landmark> cameraLandmarkPath = landmarksHelper.getCameraLandMarkArray();
-        Log.d("EH camerapath", String.valueOf(cameraLandmarkPath.size()));
         canvas.drawPath(getCameraPath(cameraLandmarkPath), cameraPathPaint);
         Point cameraPoint = scaledPointFromLandmark(cameraLandmarkPath.get(cameraLandmarkPath.size() - 1));
         canvas.drawCircle(cameraPoint.x, cameraPoint.y,cameraCircleSize /pointScalingFactor, cameraPaint);
