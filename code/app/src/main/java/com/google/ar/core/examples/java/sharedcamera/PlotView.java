@@ -16,6 +16,8 @@ import android.view.View;
 
 import java.sql.Time;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 
 
 public class PlotView extends View {
@@ -122,7 +124,25 @@ public class PlotView extends View {
         super.onDraw(canvas);
         canvas.drawPaint(backgroundPaint);
 
-        ArrayList<LandmarksHelper.Landmark> landmarkCopy = landmarksHelper.getLandMarkArray();
+
+        int pointSum = 0;
+        for (String key: landmarksHelper.gridZones.keySet())
+            Log.d("checkingkey", key);
+        for (GridInfo gridInfo: landmarksHelper.gridZones.values()){
+            ArrayList<LandmarksHelper.Landmark> landmarkArrayList = new ArrayList<LandmarksHelper.Landmark>();
+            Collections.copy(landmarkArrayList, gridInfo.landmarks);
+            for (LandmarksHelper.Landmark landmark : landmarkArrayList){
+                Point point = scaledPointFromLandmark(landmark);
+                RadialGradient gradient = new RadialGradient((float)point.x, (float)point.y, landmarkCircleSize / pointScalingFactor,
+                        Color.RED, Color.TRANSPARENT, Shader.TileMode.CLAMP);
+                landmarkPaint.setShader(gradient);
+                canvas.drawCircle(point.x, point.y, landmarkCircleSize / pointScalingFactor, landmarkPaint);
+                pointSum++;
+            }
+        }
+        numberOfPlotPoints = pointSum;
+
+        /*ArrayList<LandmarksHelper.Landmark> landmarkCopy = landmarksHelper.getLandMarkArray();
         numberOfPlotPoints = landmarkCopy.size();
         Log.d("EH landmarkarray size", String.valueOf(landmarkCopy.size()));
         for (LandmarksHelper.Landmark landmark: landmarkCopy){
@@ -131,7 +151,7 @@ public class PlotView extends View {
                     Color.RED, Color.TRANSPARENT, Shader.TileMode.CLAMP);
             landmarkPaint.setShader(gradient);
             canvas.drawCircle(point.x, point.y, landmarkCircleSize / pointScalingFactor, landmarkPaint);
-        }
+        }*/
 
         Log.d("EH circle size", Float.toString(landmarkCircleSize));
         Log.d("EH scaling factor", Float.toString(plotScalingFactor));
