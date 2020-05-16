@@ -360,7 +360,7 @@ public class SharedCameraActivity extends AppCompatActivity
     start.setOnClickListener((listener) -> {
       stop.setVisibility(View.VISIBLE);
       start.setVisibility(View.INVISIBLE);
-//      landmarksHelper.resetSLAM();
+      landmarksHelper.resetSLAM();
       arMode = true;
       resumeARCore();
     });
