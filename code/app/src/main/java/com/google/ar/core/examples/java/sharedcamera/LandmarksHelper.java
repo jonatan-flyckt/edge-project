@@ -12,11 +12,17 @@ public class LandmarksHelper {
 
     private static final int BYTES_PER_FLOAT = Float.SIZE / 8;
 
-    public static ArrayList<Landmark> cameraLandMarkArray = new ArrayList<>(1000);
+    public static ArrayList<Landmark> cameraLandMarkArray = new ArrayList<Landmark>(1000);
 
     GridZones gridZones = new GridZones();
 
+    float confThreshold = (float) 0.5;
+
+    float cleanCameraThreshold = (float) 1;
+
     ArrayList<String> zonesUpdatedThisIteration = new ArrayList<String>();
+
+    float positionMultiplier = 2;
 
     public LandmarksHelper() {
         lowX = -3;
@@ -50,8 +56,26 @@ public class LandmarksHelper {
         return new ArrayList<Landmark>(cameraLandMarkArray);
     }
 
+    public void cleanCameraLandmarkArray(){
+        Iterator<Landmark> iterator = cameraLandMarkArray.iterator();
+        Log.d("cameralandmark before clean", String.valueOf(cameraLandMarkArray.size()));
+        float previousX = 0;
+        float previousY = 0;
+        while (iterator.hasNext()){
+            Landmark currentLandmark = iterator.next();
+            if ( Math.abs(currentLandmark.x - previousX) < cleanCameraThreshold && Math.abs(currentLandmark.y - previousY) < cleanCameraThreshold)
+                iterator.remove();
+            else {
+                previousX = currentLandmark.x;
+                previousY = currentLandmark.y;
+            }
+        }
+        Log.d("cameralandmark after clean", String.valueOf(cameraLandMarkArray.size()));
+        Log.d("cameralandmark", "------------------");
+    }
+
     public void addCameraLandMark(float x, float y){
-        cameraLandMarkArray.add(new Landmark(x, y, 1));
+        cameraLandMarkArray.add(new Landmark(x * positionMultiplier, y * positionMultiplier, 1));
         if (x > camHighX)
             camHighX = x;
         if (x < camLowX)
@@ -66,11 +90,11 @@ public class LandmarksHelper {
 
         for (int i = 0; i < pointBuffer.length; i = i + BYTES_PER_FLOAT) {
 
-            float fx = pointBuffer[i + 0] * 2;
-            float fy = pointBuffer[i + 2] * 2;
+            float fx = pointBuffer[i + 0] * positionMultiplier;
+            float fy = pointBuffer[i + 2] * positionMultiplier;
             float fcon = pointBuffer[i + 3];
 
-            if (fx < highX+1 && fx > lowX-1 && fy < highY+1 && fy > lowY-1 && fcon > 0.6) {
+            if (fx < highX+1 && fx > lowX-1 && fy < highY+1 && fy > lowY-1 && fcon > confThreshold) {
                 Landmark newLandmark = new Landmark(fx, fy, fcon);
                 String key = keyFromGridBounds((int) newLandmark.x, (int) newLandmark.x + 1, (int) newLandmark.y, (int) newLandmark.y + 1);
                 if (gridZones.get(key) == null){
@@ -94,10 +118,11 @@ public class LandmarksHelper {
     }
 
     public void cleanLandmarks() {
-        int limitPerZone = 1000;
+        int limitPerZone = 700;
         //clearPointsInCloseProximity(0.02f, limitPerZone);
         refineGridLandmarks(limitPerZone);
-        removeGridsWithFewPoints(10);
+        removeGridsWithFewPoints(5);
+        cleanCameraLandmarkArray();
         updateExtremePoints();
     }
 
