@@ -845,7 +845,7 @@ public class SharedCameraActivity extends AppCompatActivity
       if (cameraTracking > 30) {
         cameraTracking = 0;
         Pose camPos = camera.getDisplayOrientedPose();
-        landmarksHelper.addCameraLandMark(camPos.tx(), camPos.tz());
+        landmarksHelper.addCameraLandMark(camPos.tx(), camPos.tz(), camPos.ty());
         Log.d("campositionTX", String.valueOf(camPos.tx()));
         Log.d("campositionTY", String.valueOf(camPos.ty()));
         Log.d("campositionTZ", String.valueOf(camPos.tz()));

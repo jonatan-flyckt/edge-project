@@ -11,24 +11,24 @@ public class GridZones extends ConcurrentHashMap<String, GridInfo> {
 
 class GridInfo{
 
-    public GridInfo(){
+    public GridInfo(int limitPerZone, float x, float y){
         landmarks = new CopyOnWriteArrayList<LandmarksHelper.Landmark>();
+        lowX = x;
+        highX = x;
+        lowY = y;
+        highY = y;
+        maxNumberOfPoints = limitPerZone;
     }
 
-    /*public void resetSums(){
-        //confList.clear();
-        //lmSum = 0;
-        confRemovalThreshold = 0;
-    }*/
 
     float confidence;
-    //int landmarkCount;
     CopyOnWriteArrayList<LandmarksHelper.Landmark> landmarks;
-    //int lmSum;
-    //float confRemovalThreshold;
     float lowX;
     float highX;
     float lowY;
     float highY;
-    boolean isBeingCleaned = false;
+    float lowZ;
+    float highZ;
+    int maxNumberOfPoints;
+
 }

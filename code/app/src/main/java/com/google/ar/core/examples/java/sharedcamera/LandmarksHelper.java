@@ -22,32 +22,39 @@ public class LandmarksHelper {
 
     ArrayList<String> zonesUpdatedThisIteration = new ArrayList<String>();
 
-    float positionMultiplier = 2;
+    float positionMultiplier = 4;
+
+    float averageCameraZ = 0;
+
+    int limitPerZone = 200;
 
     public LandmarksHelper() {
-        lowX = -3;
-        lowY = -3;
-        highX = 3;
-        highY = 3;
+        lowX = -6;
+        lowY = -6;
+        highX = 6;
+        highY = 6;
+        lowZ = 0;
+        highZ = 0;
         camLowX = 0;
         camHighX = 0;
         camLowY = 0;
-        camHighY = 0;
-        cameraLandMarkArray.add(new Landmark(0, 0, 1));
+        cameraLandMarkArray.add(new Landmark(0, 0, 0, 1));
     }
 
     private int cleanCount = 0;
 
-    float lowX, highX, lowY, highY, camLowX, camHighX, camLowY, camHighY;
+    float lowX, highX, lowY, highY, lowZ, highZ, camLowX, camHighX, camLowY, camHighY;
 
     public static class Landmark {
         public final float x;
         public final float y;
+        public final float z;
         public final float con;
 
-        public Landmark(float x, float y, float con) {
+        public Landmark(float x, float y, float z, float con) {
             this.x = x;
             this.y = y;
+            this.z = z;
             this.con = con;
         }
     }
@@ -74,8 +81,8 @@ public class LandmarksHelper {
         Log.d("cameralandmark", "------------------");
     }
 
-    public void addCameraLandMark(float x, float y){
-        cameraLandMarkArray.add(new Landmark(x * positionMultiplier, y * positionMultiplier, 1));
+    public void addCameraLandMark(float x, float y, float z){
+        cameraLandMarkArray.add(new Landmark(x * positionMultiplier, y * positionMultiplier, z * positionMultiplier,  1));
         if (x > camHighX)
             camHighX = x;
         if (x < camLowX)
@@ -84,6 +91,15 @@ public class LandmarksHelper {
             camHighY = y;
         if (y < camLowY)
             camLowY = y;
+        updateAverageCameraZ();
+    }
+
+    public void updateAverageCameraZ(){
+        float zSum = 0;
+        for (Landmark landmark: cameraLandMarkArray){
+            zSum += landmark.z;
+        }
+        averageCameraZ = zSum / cameraLandMarkArray.size();
     }
 
     public void addLandmarks(float[] pointBuffer) {
@@ -91,14 +107,15 @@ public class LandmarksHelper {
         for (int i = 0; i < pointBuffer.length; i = i + BYTES_PER_FLOAT) {
 
             float fx = pointBuffer[i + 0] * positionMultiplier;
+            float fz = pointBuffer[i + 1] * positionMultiplier;
             float fy = pointBuffer[i + 2] * positionMultiplier;
             float fcon = pointBuffer[i + 3];
 
             if (fx < highX+1 && fx > lowX-1 && fy < highY+1 && fy > lowY-1 && fcon > confThreshold) {
-                Landmark newLandmark = new Landmark(fx, fy, fcon);
+                Landmark newLandmark = new Landmark(fx, fy, fz, fcon);
                 String key = keyFromGridBounds((int) newLandmark.x, (int) newLandmark.x + 1, (int) newLandmark.y, (int) newLandmark.y + 1);
                 if (gridZones.get(key) == null){
-                    gridZones.put(key, new GridInfo());
+                    gridZones.put(key, new GridInfo(limitPerZone, fx, fy));
                 }
                 GridInfo gridInfo = gridZones.get(key);
                 gridInfo.landmarks.add(newLandmark);
@@ -118,10 +135,9 @@ public class LandmarksHelper {
     }
 
     public void cleanLandmarks() {
-        int limitPerZone = 700;
         //clearPointsInCloseProximity(0.02f, limitPerZone);
-        refineGridLandmarks(limitPerZone);
-        removeGridsWithFewPoints(5);
+        refineGridLandmarks();
+        removeGridsWithFewPoints(30);
         cleanCameraLandmarkArray();
         updateExtremePoints();
     }
@@ -177,17 +193,30 @@ public class LandmarksHelper {
                 lowY = gridInfo.lowY;
             if (gridInfo.highY > highY)
                 highY = gridInfo.highY;
+            if (gridInfo.lowZ < lowZ)
+                lowZ = gridInfo.lowZ;
+            if (gridInfo.highZ > highZ)
+                highZ = gridInfo.highZ;
         }
     }
 
-    public void refineGridLandmarks(int limitPerZone){
+    public void refineGridLandmarks(){
 
         for (String key: zonesUpdatedThisIteration){
             GridInfo gridInfo = gridZones.get(key);
             float confSum = 0;
             Collections.sort(gridInfo.landmarks, (o1, o2) -> Float.compare(o2.con, o1.con));
-            if (gridInfo.landmarks.size() > limitPerZone)
-                gridInfo.landmarks = new CopyOnWriteArrayList<>(gridInfo.landmarks.subList(0, limitPerZone));
+
+            //Make zones that only contain floor points show fewer points
+            /*if ((gridInfo.highZ - this.lowZ < 0.2)){
+                gridInfo.maxNumberOfPoints = (int)(gridInfo.maxNumberOfPoints * 0.2);
+            }
+            else if ((gridInfo.highZ - this.lowZ < 0.4)){
+                gridInfo.maxNumberOfPoints = (int)(gridInfo.maxNumberOfPoints * 0.4);
+            }*/
+
+            if (gridInfo.landmarks.size() > gridInfo.maxNumberOfPoints)
+                gridInfo.landmarks = new CopyOnWriteArrayList<>(gridInfo.landmarks.subList(0, gridInfo.maxNumberOfPoints));
             for (Landmark landmark : gridInfo.landmarks){
                 confSum += landmark.con;
                 if (landmark.x < gridInfo.lowX)
@@ -198,6 +227,10 @@ public class LandmarksHelper {
                     gridInfo.lowY = landmark.y;
                 if (landmark.y > gridInfo.highY)
                     gridInfo.highY = landmark.y;
+                if (landmark.z < gridInfo.lowZ)
+                    gridInfo.lowZ = landmark.z;
+                if (landmark.z > gridInfo.highZ)
+                    gridInfo.highZ = landmark.z;
             }
             gridInfo.confidence = confSum / gridInfo.landmarks.size();
         }
