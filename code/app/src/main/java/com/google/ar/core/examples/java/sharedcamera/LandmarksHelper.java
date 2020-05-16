@@ -1,7 +1,5 @@
 package com.google.ar.core.examples.java.sharedcamera;
 
-import android.util.Log;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -12,23 +10,35 @@ public class LandmarksHelper {
 
     private static final int BYTES_PER_FLOAT = Float.SIZE / 8;
 
+    final float CONF_THRESHOLD = (float) 0.5;
+
+    float CLEAN_CAMERA_THRESHOLD = (float) 1;
+
+    final int FRAMES_UNTILL_CLEAN = 20;
+
+    final int POINTS_IN_GRIDINFO = 700;
+
+    final int GRIDINFO_POINT_THRESHOLD = 5;
+
+    // Sets the size of the grid, 1 = 1 gridinfo/m^2, 2 = 4 gridinfo/m^2 etc.
+    final int GRID_SIZE = 2;
+
+    // By default its 1m away from current visible area
+    final int NEW_POINT_INCLUSION_DIST = 1 * GRID_SIZE;
+
+    // Viewport square in m^2, 3 * GRID_SIZE = 3m^2
+    final int INITIAL_VIEW_SIZE = 3 * GRID_SIZE;
+
     public static ArrayList<Landmark> cameraLandMarkArray = new ArrayList<Landmark>(1000);
-
     GridZones gridZones = new GridZones();
-
-    float confThreshold = (float) 0.5;
-
-    float cleanCameraThreshold = (float) 1;
-
     ArrayList<String> zonesUpdatedThisIteration = new ArrayList<String>();
 
-    float positionMultiplier = 2;
 
     public LandmarksHelper() {
-        lowX = -3;
-        lowY = -3;
-        highX = 3;
-        highY = 3;
+        lowX = -INITIAL_VIEW_SIZE;
+        lowY = -INITIAL_VIEW_SIZE;
+        highX = INITIAL_VIEW_SIZE;
+        highY = INITIAL_VIEW_SIZE;
         camLowX = 0;
         camHighX = 0;
         camLowY = 0;
@@ -58,24 +68,21 @@ public class LandmarksHelper {
 
     public void cleanCameraLandmarkArray(){
         Iterator<Landmark> iterator = cameraLandMarkArray.iterator();
-        Log.d("cameralandmark before clean", String.valueOf(cameraLandMarkArray.size()));
         float previousX = 0;
         float previousY = 0;
         while (iterator.hasNext()){
             Landmark currentLandmark = iterator.next();
-            if ( Math.abs(currentLandmark.x - previousX) < cleanCameraThreshold && Math.abs(currentLandmark.y - previousY) < cleanCameraThreshold)
+            if ( Math.abs(currentLandmark.x - previousX) < CLEAN_CAMERA_THRESHOLD && Math.abs(currentLandmark.y - previousY) < CLEAN_CAMERA_THRESHOLD)
                 iterator.remove();
             else {
                 previousX = currentLandmark.x;
                 previousY = currentLandmark.y;
             }
         }
-        Log.d("cameralandmark after clean", String.valueOf(cameraLandMarkArray.size()));
-        Log.d("cameralandmark", "------------------");
     }
 
     public void addCameraLandMark(float x, float y){
-        cameraLandMarkArray.add(new Landmark(x * positionMultiplier, y * positionMultiplier, 1));
+        cameraLandMarkArray.add(new Landmark(x * GRID_SIZE, y * GRID_SIZE, 1));
         if (x > camHighX)
             camHighX = x;
         if (x < camLowX)
@@ -90,11 +97,11 @@ public class LandmarksHelper {
 
         for (int i = 0; i < pointBuffer.length; i = i + BYTES_PER_FLOAT) {
 
-            float fx = pointBuffer[i + 0] * positionMultiplier;
-            float fy = pointBuffer[i + 2] * positionMultiplier;
+            float fx = pointBuffer[i + 0] * GRID_SIZE;
+            float fy = pointBuffer[i + 2] * GRID_SIZE;
             float fcon = pointBuffer[i + 3];
 
-            if (fx < highX+1 && fx > lowX-1 && fy < highY+1 && fy > lowY-1 && fcon > confThreshold) {
+            if (fx < highX+ NEW_POINT_INCLUSION_DIST && fx > lowX- NEW_POINT_INCLUSION_DIST && fy < highY+ NEW_POINT_INCLUSION_DIST && fy > lowY- NEW_POINT_INCLUSION_DIST && fcon > CONF_THRESHOLD) {
                 Landmark newLandmark = new Landmark(fx, fy, fcon);
                 String key = keyFromGridBounds((int) newLandmark.x, (int) newLandmark.x + 1, (int) newLandmark.y, (int) newLandmark.y + 1);
                 if (gridZones.get(key) == null){
@@ -110,7 +117,7 @@ public class LandmarksHelper {
 
         cleanCount++;
 
-        if (cleanCount > 20) {
+        if (cleanCount > FRAMES_UNTILL_CLEAN) {
             cleanCount = 0;
             cleanLandmarks();
             zonesUpdatedThisIteration.clear();
@@ -118,10 +125,10 @@ public class LandmarksHelper {
     }
 
     public void cleanLandmarks() {
-        int limitPerZone = 700;
+        int limitPerZone = POINTS_IN_GRIDINFO;
         //clearPointsInCloseProximity(0.02f, limitPerZone);
         refineGridLandmarks(limitPerZone);
-        removeGridsWithFewPoints(5);
+        removeGridsWithFewPoints(GRIDINFO_POINT_THRESHOLD);
         cleanCameraLandmarkArray();
         updateExtremePoints();
     }
@@ -207,6 +214,22 @@ public class LandmarksHelper {
         StringBuilder sb = new StringBuilder();
         sb.append(xLo).append(xHi).append(yLo).append(yHi);
         return sb.toString();
+    }
+
+    public void resetSLAM() {
+        zonesUpdatedThisIteration.clear();
+        gridZones.clear();
+        cameraLandMarkArray.clear();
+        lowX = -INITIAL_VIEW_SIZE;
+        lowY = -INITIAL_VIEW_SIZE;
+        highX = INITIAL_VIEW_SIZE;
+        highY = INITIAL_VIEW_SIZE;
+        camLowX = 0;
+        camHighX = 0;
+        camLowY = 0;
+        camHighY = 0;
+        cameraLandMarkArray.add(new Landmark(0, 0, 1));
+
     }
 
 }

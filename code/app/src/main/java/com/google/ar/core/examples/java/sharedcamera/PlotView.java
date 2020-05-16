@@ -19,7 +19,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class PlotView extends View {
     Paint cameraPaint, cameraPathPaint, landmarkPaint, backgroundPaint;
-    int screenWidth, screenHeight;
     float landmarkCircleSize, cameraCircleSize;
     Path path;
 
@@ -30,19 +29,10 @@ public class PlotView extends View {
 
 
     public float setPlotScalingFactors(){
-        float xDist = (Math.max(landmarksHelper.highX, landmarksHelper.camHighX) - Math.min(landmarksHelper.lowX, landmarksHelper.camLowX)) * 1.2f;
-        float yDist = (Math.max(landmarksHelper.highY, landmarksHelper.camHighY) - Math.min(landmarksHelper.lowY, landmarksHelper.camLowY)) * 1.2f;
+        float xDist = Math.max(landmarksHelper.highX, landmarksHelper.camHighX) - Math.min(landmarksHelper.lowX, landmarksHelper.camLowX);
+        float yDist = Math.max(landmarksHelper.highY, landmarksHelper.camHighY) - Math.min(landmarksHelper.lowY, landmarksHelper.camLowY);
         float xScale = getWidth() / xDist;
         float yScale = getHeight() / yDist;
-        Log.d("scale highX:", String.valueOf(landmarksHelper.highX));
-        Log.d("scale highY:", String.valueOf(landmarksHelper.highY));
-        Log.d("scale lowX:", String.valueOf(landmarksHelper.lowX));
-        Log.d("scale lowY:", String.valueOf(landmarksHelper.lowY));
-        Log.d("scale width:", String.valueOf(getWidth()));
-        Log.d("scale height:", String.valueOf(getHeight()));
-        Log.d("scale X:", String.valueOf(xScale));
-        Log.d("scale Y:", String.valueOf(yScale));
-        Log.d("scale", "------");
         return Math.max(xScale, yScale);
     }
 
@@ -67,9 +57,6 @@ public class PlotView extends View {
         ((Activity) getContext()).getWindowManager()
                 .getDefaultDisplay()
                 .getMetrics(displayMetrics);
-
-        screenWidth = getWidth();
-        screenHeight = getHeight();
 
         landmarkCircleSize = pxFromDp(context, 3);
         cameraCircleSize = pxFromDp(context, 9);
@@ -100,7 +87,7 @@ public class PlotView extends View {
     }
 
     float normalizedConfidence(float confidence){
-        float lowerBound = landmarksHelper.confThreshold;
+        float lowerBound = landmarksHelper.CONF_THRESHOLD;
         float upperBound = 1;
         return (confidence - lowerBound) / (upperBound - lowerBound);
     }

@@ -19,6 +19,8 @@ package com.google.ar.core.examples.java.sharedcamera;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 import android.widget.LinearLayout;
 
 import android.content.Context;
@@ -100,6 +102,7 @@ public class SharedCameraActivity extends AppCompatActivity
   // Egna saker --------------------------------------------------------------------------------
 
   private final LandmarksHelper landmarksHelper = new LandmarksHelper();
+  private final int CAMERA_TRACKING_THRESHOLD = 30;
   int cameraTracking = 0;
 
   private Handler mainThreadHandler;
@@ -351,24 +354,24 @@ public class SharedCameraActivity extends AppCompatActivity
     // Helpers, see hello_ar_java sample to learn more.
     displayRotationHelper = new DisplayRotationHelper(this);
 
-    // Switch to allow pausing and resuming of ARCore.
-    Switch arcoreSwitch = findViewById(R.id.arcore_switch);
-    // Ensure initial switch position is set based on initial value of `arMode` variable.
-    arcoreSwitch.setChecked(arMode);
-    arcoreSwitch.setOnCheckedChangeListener(
-        (view, checked) -> {
-          Log.i(TAG, "Switching to " + (checked ? "AR" : "non-AR") + " mode.");
-          if (checked) {
-            arMode = true;
-            resumeARCore();
-          } else {
-            arMode = false;
+    Button start = findViewById(R.id.startSLAM);
+    Button stop = findViewById(R.id.stopSLAM);
 
-            pauseARCore();
-            resumeCamera2();
-          }
-        });
+    start.setOnClickListener((listener) -> {
+      stop.setVisibility(View.VISIBLE);
+      start.setVisibility(View.INVISIBLE);
+//      landmarksHelper.resetSLAM();
+      arMode = true;
+      resumeARCore();
+    });
 
+    stop.setOnClickListener((listener) -> {
+      start.setVisibility(View.VISIBLE);
+      stop.setVisibility(View.INVISIBLE);
+      arMode = false;
+      pauseARCore();
+      resumeCamera2();
+    });
 
     linearLayout = findViewById(R.id.linearLayout);
     plotView = new PlotView(this);
@@ -842,17 +845,12 @@ public class SharedCameraActivity extends AppCompatActivity
 
       cameraTracking++;
 
-      if (cameraTracking > 30) {
+      if (cameraTracking > CAMERA_TRACKING_THRESHOLD) {
         cameraTracking = 0;
         Pose camPos = camera.getDisplayOrientedPose();
         landmarksHelper.addCameraLandMark(camPos.tx(), camPos.tz());
-        Log.d("campositionTX", String.valueOf(camPos.tx()));
-        Log.d("campositionTY", String.valueOf(camPos.ty()));
-        Log.d("campositionTZ", String.valueOf(camPos.tz()));
       }
     }
-
-    Log.d("Camera pose", camera.getDisplayOrientedPose().toString());
   }
 
 

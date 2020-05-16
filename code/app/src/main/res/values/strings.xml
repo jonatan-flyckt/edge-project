@@ -16,4 +16,6 @@
 -->
 <resources>
   <string name="app_name">Edge SLAM</string>
+    <string name="start">Start</string>
+  <string name="stop">Stop</string>
 </resources>
