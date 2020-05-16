@@ -19,10 +19,10 @@ public class LandmarksHelper {
     ArrayList<String> zonesUpdatedThisIteration = new ArrayList<String>();
 
     public LandmarksHelper() {
-        lowX = 0;
-        lowY = 0;
-        highX = 0;
-        highY = 0;
+        lowX = -3;
+        lowY = -3;
+        highX = 3;
+        highY = 3;
         camLowX = 0;
         camHighX = 0;
         camLowY = 0;
@@ -66,11 +66,11 @@ public class LandmarksHelper {
 
         for (int i = 0; i < pointBuffer.length; i = i + BYTES_PER_FLOAT) {
 
-            float fx = pointBuffer[i + 0];
-            float fy = pointBuffer[i + 2];
+            float fx = pointBuffer[i + 0] * 2;
+            float fy = pointBuffer[i + 2] * 2;
             float fcon = pointBuffer[i + 3];
 
-            if (fx < highX+1 && fx > lowX-1 && fy < highY+1 && fy > lowY-1 && fcon > 0.3) {
+            if (fx < highX+1 && fx > lowX-1 && fy < highY+1 && fy > lowY-1 && fcon > 0.6) {
                 Landmark newLandmark = new Landmark(fx, fy, fcon);
                 String key = keyFromGridBounds((int) newLandmark.x, (int) newLandmark.x + 1, (int) newLandmark.y, (int) newLandmark.y + 1);
                 if (gridZones.get(key) == null){
@@ -86,7 +86,7 @@ public class LandmarksHelper {
 
         cleanCount++;
 
-        if (cleanCount > 50) {
+        if (cleanCount > 20) {
             cleanCount = 0;
             cleanLandmarks();
             zonesUpdatedThisIteration.clear();
@@ -94,10 +94,10 @@ public class LandmarksHelper {
     }
 
     public void cleanLandmarks() {
-        int limitPerZone = 1500;
+        int limitPerZone = 1000;
         //clearPointsInCloseProximity(0.02f, limitPerZone);
         refineGridLandmarks(limitPerZone);
-        removeGridsWithFewPoints(50);
+        removeGridsWithFewPoints(10);
         updateExtremePoints();
     }
 
