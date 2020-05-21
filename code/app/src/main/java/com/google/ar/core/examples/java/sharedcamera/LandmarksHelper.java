@@ -19,9 +19,9 @@ public class LandmarksHelper {
 
     final int FRAMES_UNTILL_CLEAN = 20;
 
-    final int POINTS_IN_GRIDINFO = 200;
+    final int POINTS_IN_GRIDINFO = 400;
 
-    final int GRIDINFO_POINT_THRESHOLD = 30;
+    final int GRIDINFO_POINT_THRESHOLD = 40;
 
     // Sets the size of the grid, 1 = 1 gridinfo/m^2, 2 = 4 gridinfo/m^2 etc.
     final int GRID_SIZE = 4;

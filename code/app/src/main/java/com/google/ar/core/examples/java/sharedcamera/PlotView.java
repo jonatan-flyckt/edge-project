@@ -100,7 +100,7 @@ public class PlotView extends View {
             return 0;
         }
         else{
-            return (int)(landmarkBaselineAlpha * (1 - distance / landmarksHelper.distanceFromCameraToFloor));
+            return (int)(landmarkBaselineAlpha * (1 - Math.pow(distance / landmarksHelper.distanceFromCameraToFloor, 2)));
         }
     }
 
