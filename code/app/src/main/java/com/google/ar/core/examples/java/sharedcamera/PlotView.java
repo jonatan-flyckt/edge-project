@@ -9,21 +9,27 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.RadialGradient;
+import android.graphics.Rect;
 import android.graphics.Shader;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
+
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 
 public class PlotView extends View {
-    Paint cameraPaint, cameraPathPaint, landmarkPaint, backgroundPaint;
+    Paint cameraPaint, cameraPathPaint, landmarkPaint, backgroundPaint, confSquarePaint;
     float landmarkCircleSize, cameraCircleSize;
     Path path;
 
     float plotScalingFactor, pointScalingFactor;
     int numberOfPlotPoints;
+
+    int landmarkBaselineAlpha = 25;
 
     public LandmarksHelper landmarksHelper;
 
@@ -37,7 +43,7 @@ public class PlotView extends View {
     }
 
     public float setPointScalingFactor(){
-        return (float)Math.pow(numberOfPlotPoints, 0.1);
+        return (float)Math.pow(numberOfPlotPoints, 0.15);
     }
 
     public void updatePlotSettings(){
@@ -58,12 +64,12 @@ public class PlotView extends View {
                 .getDefaultDisplay()
                 .getMetrics(displayMetrics);
 
-        landmarkCircleSize = pxFromDp(context, 3);
+        landmarkCircleSize = pxFromDp(context, 6);
         cameraCircleSize = pxFromDp(context, 9);
 
         landmarkPaint = new Paint();
         landmarkPaint.setStyle(Paint.Style.FILL);
-        landmarkPaint.setAlpha(20);
+        landmarkPaint.setAlpha(landmarkBaselineAlpha);
         cameraPaint = new Paint();
         cameraPaint.setStrokeWidth(cameraCircleSize);
         cameraPaint.setStyle(Paint.Style.FILL);
@@ -76,6 +82,26 @@ public class PlotView extends View {
         backgroundPaint = new Paint();
         backgroundPaint.setStyle(Paint.Style.FILL);
         backgroundPaint.setColor(Color.TRANSPARENT);
+
+
+
+        confSquarePaint = new Paint();
+        confSquarePaint.setStyle(Paint.Style.FILL);
+        //confSquarePaint.setColor(Color.parseColor("#ff00ff"));
+        confSquarePaint.setColor(Color.WHITE);
+
+    }
+
+    int getZAlpha(float z){
+        if (z > landmarksHelper.averageCameraZ)
+            return landmarkBaselineAlpha;
+        float distance = Math.abs(z - landmarksHelper.averageCameraZ);
+        if (distance > landmarksHelper.distanceFromCameraToFloor){
+            return 0;
+        }
+        else{
+            return (int)(landmarkBaselineAlpha * (1 - distance / landmarksHelper.distanceFromCameraToFloor));
+        }
     }
 
     String colorFromConfidence(float confidence){
@@ -107,6 +133,7 @@ public class PlotView extends View {
         return path;
     }
 
+
     @Override
     protected void onDraw(Canvas canvas) {
 
@@ -125,6 +152,7 @@ public class PlotView extends View {
                     RadialGradient gradient = new RadialGradient((float) point.x, (float) point.y, landmarkCircleSize / pointScalingFactor,
                             Color.parseColor(colorFromConfidence(landmark.con)), Color.TRANSPARENT, Shader.TileMode.CLAMP);
                     landmarkPaint.setShader(gradient);
+                    landmarkPaint.setAlpha(getZAlpha(landmark.z));
                     canvas.drawCircle(point.x, point.y, landmarkCircleSize / pointScalingFactor, landmarkPaint);
                     pointSum++;
                 }
@@ -134,6 +162,45 @@ public class PlotView extends View {
             }
         }
         numberOfPlotPoints = pointSum;
+
+        //Draw squares showing where to scan more
+        ArrayList<Float> confList = new ArrayList<>();
+        float confSum = 0;
+        int i = 0;
+        float meanGridConf;
+        for (String key: landmarksHelper.gridZones.keySet()) {
+            GridInfo gridInfo = landmarksHelper.gridZones.get(key);
+            confList.add(gridInfo.confidence);
+            confSum += gridInfo.confidence;
+            i++;
+        }
+        meanGridConf = confSum / i;
+        Collections.sort(confList);
+        i = 0;
+        float confThreshold = 0;
+        for (float conf: confList) {
+            confThreshold = conf;
+            i++;
+            if (i > 4)
+                break;
+        }
+        for (String key: landmarksHelper.gridZones.keySet()) {
+            GridInfo gridInfo = landmarksHelper.gridZones.get(key);
+            if (gridInfo.confidence < confThreshold){
+                Log.d("TEST", key);
+                Log.d("TEST low X", String.valueOf((int)gridInfo.lowX));
+                Log.d("TEST low Y", String.valueOf((int)gridInfo.lowY));
+                Log.d("TEST high X", String.valueOf((int)gridInfo.lowX+1));
+                Log.d("TEST high Y", String.valueOf((int)gridInfo.lowY+1));
+
+                Point topLeft = scaledPointFromLandmark(new LandmarksHelper.Landmark(gridInfo.lowX, gridInfo.lowY, 0,0));
+                Point bottomRight = scaledPointFromLandmark(new LandmarksHelper.Landmark((int)gridInfo.lowX+1, (int)gridInfo.lowY+1, 0,0));
+                Rect rect = new Rect(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
+                //canvas.drawRect(rect, confSquarePaint);
+            }
+        }
+
+
 
         //Draw camera path and current position
         cameraPathPaint.setStrokeWidth((cameraCircleSize / 3) / pointScalingFactor);

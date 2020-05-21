@@ -848,7 +848,7 @@ public class SharedCameraActivity extends AppCompatActivity
       if (cameraTracking > CAMERA_TRACKING_THRESHOLD) {
         cameraTracking = 0;
         Pose camPos = camera.getDisplayOrientedPose();
-        landmarksHelper.addCameraLandMark(camPos.tx(), camPos.tz());
+        landmarksHelper.addCameraLandMark(camPos.tx(), camPos.tz(), camPos.ty());
       }
     }
   }
