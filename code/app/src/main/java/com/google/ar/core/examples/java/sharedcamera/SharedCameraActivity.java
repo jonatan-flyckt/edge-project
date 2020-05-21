@@ -110,7 +110,7 @@ public class SharedCameraActivity extends AppCompatActivity
     @Override
     public void run() {
       updateChart();
-      mainThreadHandler.postDelayed(this, 50);
+      mainThreadHandler.postDelayed(this, 100);
     }
   };
 
@@ -173,9 +173,6 @@ public class SharedCameraActivity extends AppCompatActivity
   private final BackgroundRenderer backgroundRenderer = new BackgroundRenderer();
   private final PointCloudRenderer pointCloudRenderer = new PointCloudRenderer();
 
-  // Anchors created from taps, see hello_ar_java sample to learn more.
-  private final ArrayList<ColoredAnchor> anchors = new ArrayList<>();
-
   // Required for test run.
   private static final Short AUTOMATOR_DEFAULT = 0;
   private static final String AUTOMATOR_KEY = "automator";
@@ -187,16 +184,6 @@ public class SharedCameraActivity extends AppCompatActivity
 
   // A check mechanism to ensure that the camera closed properly so that the app can safely exit.
   private final ConditionVariable safeToExitApp = new ConditionVariable();
-
-  private static class ColoredAnchor {
-    public final Anchor anchor;
-    public final float[] color;
-
-    public ColoredAnchor(Anchor a, float[] color4f) {
-      this.anchor = a;
-      this.color = color4f;
-    }
-  }
 
   // Camera device state callback.
   private final CameraDevice.StateCallback cameraDeviceCallback =

@@ -19,7 +19,7 @@ public class LandmarksHelper {
 
     final int FRAMES_UNTILL_CLEAN = 20;
 
-    final int POINTS_IN_GRIDINFO = 400;
+    final int POINTS_IN_GRIDINFO = 300;
 
     final int GRIDINFO_POINT_THRESHOLD = 40;
 
@@ -27,7 +27,7 @@ public class LandmarksHelper {
     final int GRID_SIZE = 4;
 
     // By default its 1m away from current visible area
-    final int NEW_POINT_INCLUSION_DIST = 1 * GRID_SIZE;
+    final int NEW_POINT_INCLUSION_DIST = (int)(1.5 * GRID_SIZE);
 
     // Viewport square in m^2, 3 * GRID_SIZE = 3m^2
     final int INITIAL_VIEW_SIZE = 3 * GRID_SIZE;
