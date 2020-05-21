@@ -17,7 +17,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.google.ar.core.examples.java.sharedcamera.SharedCameraActivity"
+    tools:context="com.google.ar.core.examples.java.EdgeSLAM.SLAMActivity"
     android:id="@+id/relativeLayout4">
 
     <!-- Layout is set to `horizontal` at runtime whenever display orientation is landscape. -->

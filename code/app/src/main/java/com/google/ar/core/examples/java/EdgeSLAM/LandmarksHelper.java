@@ -1,4 +1,4 @@
-package com.google.ar.core.examples.java.sharedcamera;
+package com.google.ar.core.examples.java.EdgeSLAM;
 
 import android.util.Log;
 
@@ -8,6 +8,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import com.google.ar.core.examples.java.EdgeSLAM.GridZones;
+import com.google.ar.core.examples.java.EdgeSLAM.GridInfo;
+
 
 public class LandmarksHelper {
 

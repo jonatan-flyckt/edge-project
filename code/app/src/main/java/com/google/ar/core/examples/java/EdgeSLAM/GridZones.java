@@ -1,4 +1,4 @@
-package com.google.ar.core.examples.java.sharedcamera;
+package com.google.ar.core.examples.java.EdgeSLAM;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;

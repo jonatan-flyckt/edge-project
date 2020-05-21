@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.ar.core.examples.java.sharedcamera;
+package com.google.ar.core.examples.java.EdgeSLAM;
 
 
 import android.support.v7.app.AppCompatActivity;
@@ -46,10 +46,8 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
-import android.widget.Switch;
 import android.widget.Toast;
 
-import com.google.ar.core.Anchor;
 import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Camera;
 import com.google.ar.core.Config;
@@ -59,12 +57,12 @@ import com.google.ar.core.Pose;
 import com.google.ar.core.Session;
 import com.google.ar.core.SharedCamera;
 import com.google.ar.core.TrackingState;
-import com.google.ar.core.examples.java.common.helpers.CameraPermissionHelper;
-import com.google.ar.core.examples.java.common.helpers.DisplayRotationHelper;
-import com.google.ar.core.examples.java.common.helpers.FullScreenHelper;
-import com.google.ar.core.examples.java.common.helpers.TrackingStateHelper;
-import com.google.ar.core.examples.java.common.rendering.BackgroundRenderer;
-import com.google.ar.core.examples.java.common.rendering.PointCloudRenderer;
+import com.google.ar.core.examples.java.ARCore.helpers.CameraPermissionHelper;
+import com.google.ar.core.examples.java.ARCore.helpers.DisplayRotationHelper;
+import com.google.ar.core.examples.java.ARCore.helpers.FullScreenHelper;
+import com.google.ar.core.examples.java.ARCore.helpers.TrackingStateHelper;
+import com.google.ar.core.examples.java.ARCore.rendering.BackgroundRenderer;
+import com.google.ar.core.examples.java.ARCore.rendering.PointCloudRenderer;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
 import com.google.ar.core.exceptions.UnavailableException;
 import java.io.IOException;
@@ -93,11 +91,11 @@ import javax.microedition.khronos.opengles.GL10;
  */
 
 
-public class SharedCameraActivity extends AppCompatActivity
+public class SLAMActivity extends AppCompatActivity
     implements GLSurfaceView.Renderer,
         ImageReader.OnImageAvailableListener,
         SurfaceTexture.OnFrameAvailableListener {
-  private static final String TAG = SharedCameraActivity.class.getSimpleName();
+  private static final String TAG = SLAMActivity.class.getSimpleName();
 
   // Egna saker --------------------------------------------------------------------------------
 
@@ -191,14 +189,14 @@ public class SharedCameraActivity extends AppCompatActivity
         @Override
         public void onOpened(@NonNull CameraDevice cameraDevice) {
           Log.d(TAG, "Camera device ID " + cameraDevice.getId() + " opened.");
-          SharedCameraActivity.this.cameraDevice = cameraDevice;
+          SLAMActivity.this.cameraDevice = cameraDevice;
           createCameraPreviewSession();
         }
 
         @Override
         public void onClosed(@NonNull CameraDevice cameraDevice) {
           Log.d(TAG, "Camera device ID " + cameraDevice.getId() + " closed.");
-          SharedCameraActivity.this.cameraDevice = null;
+          SLAMActivity.this.cameraDevice = null;
           safeToExitApp.open();
         }
 
@@ -206,14 +204,14 @@ public class SharedCameraActivity extends AppCompatActivity
         public void onDisconnected(@NonNull CameraDevice cameraDevice) {
           Log.w(TAG, "Camera device ID " + cameraDevice.getId() + " disconnected.");
           cameraDevice.close();
-          SharedCameraActivity.this.cameraDevice = null;
+          SLAMActivity.this.cameraDevice = null;
         }
 
         @Override
         public void onError(@NonNull CameraDevice cameraDevice, int error) {
           Log.e(TAG, "Camera device ID " + cameraDevice.getId() + " error " + error);
           cameraDevice.close();
-          SharedCameraActivity.this.cameraDevice = null;
+          SLAMActivity.this.cameraDevice = null;
           // Fatal error. Quit application.
           finish();
         }
@@ -255,9 +253,9 @@ public class SharedCameraActivity extends AppCompatActivity
           if (arMode && !arcoreActive) {
             resumeARCore();
           }
-          synchronized (SharedCameraActivity.this) {
+          synchronized (SLAMActivity.this) {
             captureSessionChangesPossible = true;
-            SharedCameraActivity.this.notify();
+            SLAMActivity.this.notify();
           }
         }
 
@@ -314,11 +312,11 @@ public class SharedCameraActivity extends AppCompatActivity
       };
 
   public void updateChart(){
-    plotView.invalidate();
+    plotHelper.invalidate();
   }
 
   LinearLayout linearLayout;
-  PlotView plotView;
+  PlotHelper plotHelper;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -361,11 +359,11 @@ public class SharedCameraActivity extends AppCompatActivity
     });
 
     linearLayout = findViewById(R.id.linearLayout);
-    plotView = new PlotView(this);
+    plotHelper = new PlotHelper(this);
 
-    plotView.landmarksHelper = landmarksHelper;
+    plotHelper.landmarksHelper = landmarksHelper;
 
-    linearLayout.addView(plotView);
+    linearLayout.addView(plotHelper);
     this.mainThreadHandler = new Handler();
     this.plottingManager.run();
   }

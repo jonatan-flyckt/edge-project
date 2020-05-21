@@ -12,17 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.ar.core.examples.java.common.rendering;
+package com.google.ar.core.examples.java.ARCore.rendering;
 
 import android.content.Context;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
-import android.util.Log;
 
-import com.google.ar.core.Point;
 import com.google.ar.core.PointCloud;
-import com.google.ar.core.examples.java.sharedcamera.LandmarksHelper;
 
 import java.io.IOException;
 

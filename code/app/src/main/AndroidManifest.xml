@@ -16,7 +16,7 @@
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.google.ar.core.examples.java.sharedcamera"
+    package="com.google.ar.core.examples.java.EdgeSLAM"
         >
 
   <uses-permission android:name="android.permission.CAMERA"/>
@@ -33,7 +33,7 @@
       android:usesCleartextTraffic="false"
       tools:ignore="GoogleAppIndexingWarning">
 
-    <activity android:name=".SharedCameraActivity"
+    <activity android:name="com.google.ar.core.examples.java.EdgeSLAM.SLAMActivity"
         android:configChanges="orientation|screenSize"
         android:theme="@style/Theme.AppCompat.NoActionBar"
         android:launchMode="singleTask"
