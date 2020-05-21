@@ -18,21 +18,13 @@ class GridInfo{
         maxNumberOfPoints = limitPerZone;
     }
 
-<<<<<<< HEAD
-=======
-
->>>>>>> plotting-improvements
     float confidence;
     CopyOnWriteArrayList<LandmarksHelper.Landmark> landmarks;
     float lowX;
     float highX;
     float lowY;
     float highY;
-<<<<<<< HEAD
-=======
     float lowZ;
     float highZ;
     int maxNumberOfPoints;
-
->>>>>>> plotting-improvements
 }

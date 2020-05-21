@@ -1,5 +1,7 @@
 package com.google.ar.core.examples.java.sharedcamera;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -121,7 +123,7 @@ public class LandmarksHelper {
                 Landmark newLandmark = new Landmark(fx, fy, fz, fcon);
                 String key = keyFromGridBounds((int) newLandmark.x, (int) newLandmark.x + 1, (int) newLandmark.y, (int) newLandmark.y + 1);
                 if (gridZones.get(key) == null){
-                    gridZones.put(key, new GridInfo(limitPerZone, fx, fy));
+                    gridZones.put(key, new GridInfo(POINTS_IN_GRIDINFO, fx, fy));
                 }
                 GridInfo gridInfo = gridZones.get(key);
                 gridInfo.landmarks.add(newLandmark);
@@ -141,7 +143,7 @@ public class LandmarksHelper {
     }
 
     public void cleanLandmarks() {
-        refineGridLandmarks(POINTS_IN_GRIDINFO);
+        refineGridLandmarks();
         removeGridsWithFewPoints(GRIDINFO_POINT_THRESHOLD);
         cleanCameraLandmarkArray();
         estimateFloorPosition();
@@ -256,8 +258,7 @@ public class LandmarksHelper {
         camHighX = 0;
         camLowY = 0;
         camHighY = 0;
-        cameraLandMarkArray.add(new Landmark(0, 0, 1));
-
+        cameraLandMarkArray.add(new Landmark(0, 0, 0, 1));
     }
 
 }

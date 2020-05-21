@@ -164,7 +164,7 @@ public class PlotView extends View {
         numberOfPlotPoints = pointSum;
 
         //Draw squares showing where to scan more
-        ArrayList<Float> confList = new ArrayList<>();
+        /*ArrayList<Float> confList = new ArrayList<>();
         float confSum = 0;
         int i = 0;
         float meanGridConf;
@@ -198,7 +198,7 @@ public class PlotView extends View {
                 Rect rect = new Rect(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
                 //canvas.drawRect(rect, confSquarePaint);
             }
-        }
+        }*/
 
 
 
