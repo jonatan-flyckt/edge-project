@@ -60,7 +60,7 @@ public class PlotHelper extends View {
                 .getMetrics(displayMetrics);
 
         landmarkCircleSize = pxFromDp(context, 6);
-        cameraCircleSize = pxFromDp(context, 9);
+        cameraCircleSize = pxFromDp(context, 20);
 
         landmarkPaint = new Paint();
         landmarkPaint.setStyle(Paint.Style.FILL);
@@ -154,6 +154,7 @@ public class PlotHelper extends View {
         cameraPathPaint.setStrokeWidth((cameraCircleSize / 3) / pointScalingFactor);
         CornerPathEffect corEffect = new CornerPathEffect((int)(getHeight() * 0.04 / pointScalingFactor));
         cameraPathPaint.setPathEffect(corEffect);
+        cameraPathPaint.setAlpha(100);
         try {
             cameraLandmarkPath = landmarksHelper.getCameraLandMarkArray();
             cameraPoint = scaledPointFromLandmark(cameraLandmarkPath.get(cameraLandmarkPath.size() - 1));
