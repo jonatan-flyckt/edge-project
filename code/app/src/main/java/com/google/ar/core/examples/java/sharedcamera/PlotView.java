@@ -34,22 +34,12 @@ public class PlotView extends View {
 
     public LandmarksHelper landmarksHelper;
 
-    float averageHoldingPosition = 1.5f;
 
     public float setPlotScalingFactors(){
         float xDist = (Math.max(landmarksHelper.highX, landmarksHelper.camHighX) - Math.min(landmarksHelper.lowX, landmarksHelper.camLowX)) * 1.2f;
         float yDist = (Math.max(landmarksHelper.highY, landmarksHelper.camHighY) - Math.min(landmarksHelper.lowY, landmarksHelper.camLowY)) * 1.2f;
         float xScale = getWidth() / xDist;
         float yScale = getHeight() / yDist;
-        /*Log.d("scale highX:", String.valueOf(landmarksHelper.highX));
-        Log.d("scale highY:", String.valueOf(landmarksHelper.highY));
-        Log.d("scale lowX:", String.valueOf(landmarksHelper.lowX));
-        Log.d("scale lowY:", String.valueOf(landmarksHelper.lowY));
-        Log.d("scale width:", String.valueOf(getWidth()));
-        Log.d("scale height:", String.valueOf(getHeight()));
-        Log.d("scale X:", String.valueOf(xScale));
-        Log.d("scale Y:", String.valueOf(yScale));
-        Log.d("scale", "------");*/
         return Math.max(xScale, yScale);
     }
 
@@ -97,25 +87,24 @@ public class PlotView extends View {
         backgroundPaint.setStyle(Paint.Style.FILL);
         backgroundPaint.setColor(Color.TRANSPARENT);
 
+
+
         confSquarePaint = new Paint();
         confSquarePaint.setStyle(Paint.Style.FILL);
         //confSquarePaint.setColor(Color.parseColor("#ff00ff"));
         confSquarePaint.setColor(Color.WHITE);
+
     }
 
     int getZAlpha(float z){
-        if (z < landmarksHelper.averageCameraZ){
-            float zAvgDistance = landmarksHelper.averageCameraZ - floorPosition;
-            float zPointDistance = landmarksHelper.averageCameraZ  - z;
-            return (int)((1 - zPointDistance / zAvgDistance) * landmarkBaselineAlpha);
-        }
-        else if (z > landmarksHelper.averageCameraZ){
-            float zAvgDistance = landmarksHelper.highZ - landmarksHelper.averageCameraZ;
-            float zPointDistance = z - landmarksHelper.averageCameraZ;
-            return (int)((1 - zPointDistance / zAvgDistance) * landmarkBaselineAlpha);
-        }
-        else {
+        if (z > landmarksHelper.averageCameraZ)
             return landmarkBaselineAlpha;
+        float distance = Math.abs(z - landmarksHelper.averageCameraZ);
+        if (distance > landmarksHelper.distanceFromCameraToFloor){
+            return 0;
+        }
+        else{
+            return (int)(landmarkBaselineAlpha * (1 - distance / landmarksHelper.distanceFromCameraToFloor));
         }
     }
 
@@ -148,20 +137,12 @@ public class PlotView extends View {
         return path;
     }
 
-    float floorPosition;
 
     @Override
     protected void onDraw(Canvas canvas) {
 
-        //floorPosition = landmarksHelper.averageCameraZ - averageHoldingPosition * landmarksHelper.positionMultiplier;
-
         updatePlotSettings();
-        /*Log.d("ZStuff avgCam", String.valueOf(landmarksHelper.averageCameraZ));
-        Log.d("ZStuff lowZ", String.valueOf(landmarksHelper.lowZ));
-        Log.d("ZStuff highZ", String.valueOf(landmarksHelper.highZ));
-        Log.d("ZStuff floorZ", String.valueOf(floorPosition));
-        Log.d("ZStuff", "------");
-*/
+
         super.onDraw(canvas);
         canvas.drawPaint(backgroundPaint);
 
@@ -175,7 +156,7 @@ public class PlotView extends View {
                     RadialGradient gradient = new RadialGradient((float) point.x, (float) point.y, landmarkCircleSize / pointScalingFactor,
                             Color.parseColor(colorFromConfidence(landmark.con)), Color.TRANSPARENT, Shader.TileMode.CLAMP);
                     landmarkPaint.setShader(gradient);
-                    //landmarkPaint.setAlpha(getZAlpha(landmark.z));
+                    landmarkPaint.setAlpha(getZAlpha(landmark.z));
                     canvas.drawCircle(point.x, point.y, landmarkCircleSize / pointScalingFactor, landmarkPaint);
                     pointSum++;
                 }
@@ -219,7 +200,7 @@ public class PlotView extends View {
                 Point topLeft = scaledPointFromLandmark(new LandmarksHelper.Landmark(gridInfo.lowX, gridInfo.lowY, 0,0));
                 Point bottomRight = scaledPointFromLandmark(new LandmarksHelper.Landmark((int)gridInfo.lowX+1, (int)gridInfo.lowY+1, 0,0));
                 Rect rect = new Rect(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
-                canvas.drawRect(rect, confSquarePaint);
+                //canvas.drawRect(rect, confSquarePaint);
             }
         }
 

@@ -4,6 +4,7 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -135,40 +136,46 @@ public class LandmarksHelper {
     }
 
     public void cleanLandmarks() {
-        //clearPointsInCloseProximity(0.02f, limitPerZone);
         refineGridLandmarks();
         removeGridsWithFewPoints(30);
         cleanCameraLandmarkArray();
+        estimateFloorPosition();
         updateExtremePoints();
+        Log.d("floor avgCameraZ", String.valueOf(averageCameraZ));
+        Log.d("floor floorPos", String.valueOf(floorPosition));
+        Log.d("floor camFloorDist", String.valueOf(distanceFromCameraToFloor));
+        Log.d("floor", "-----------");
     }
 
-    void clearPointsInCloseProximity(float meters, int limitPerZone){
-        for (String key: zonesUpdatedThisIteration) {
-            GridInfo gridInfo = gridZones.get(key);
-            Collections.sort(gridInfo.landmarks, (o1, o2) -> Float.compare(o2.con, o1.con));
-            int j = 0;
-            for (int i = limitPerZone; i > 0; i--){
-                while(j < gridInfo.landmarks.size()) {
-                    float x = gridInfo.landmarks.get(j).x;
-                    float y = gridInfo.landmarks.get(j).y;
-                    float con = gridInfo.landmarks.get(j).con;
 
-                    Iterator<Landmark> iterator = gridInfo.landmarks.iterator();
-                    int k = 0;
-                    while (iterator.hasNext()){
-                        Landmark currentLandmark = iterator.next();
-                        if (k != j &&
-                        currentLandmark.x < x - meters && currentLandmark.x > x + meters &&
-                        currentLandmark.y < y - meters && currentLandmark.y > y + meters &&
-                        currentLandmark.con <= con)
-                            iterator.remove();
-                        k++;
+    float floorPosition = 0;
+    float distanceFromCameraToFloor = 0;
+
+    public void estimateFloorPosition(){
+        HashMap<String, Integer> zPosMap = new HashMap<String, Integer>();
+        for (GridInfo gridInfo: gridZones.values()){
+            for (Landmark landmark: gridInfo.landmarks){
+                if (landmark.z < averageCameraZ){
+                    String key = String.valueOf((int)landmark.z);
+                    if (zPosMap.get(key) == null){
+                        zPosMap.put(key, 0);
                     }
-                    j++;
-                    break;
+                    Integer count = zPosMap.get(key);
+                    zPosMap.put(key, count+1);
                 }
             }
         }
+        int largestCount = 0;
+        String currentEstimatedFloorKey = "0";
+        for (Map.Entry<String, Integer> entry : zPosMap.entrySet()) {
+            if (entry.getValue() > largestCount){
+                currentEstimatedFloorKey = entry.getKey();
+                largestCount = entry.getValue();
+            }
+            Log.d("largestCount", String.valueOf(largestCount));
+        }
+        floorPosition = Float.parseFloat(currentEstimatedFloorKey);
+        distanceFromCameraToFloor = Math.abs(averageCameraZ - floorPosition);
     }
 
     void removeGridsWithFewPoints(int threshold){
@@ -201,20 +208,10 @@ public class LandmarksHelper {
     }
 
     public void refineGridLandmarks(){
-
         for (String key: zonesUpdatedThisIteration){
             GridInfo gridInfo = gridZones.get(key);
             float confSum = 0;
             Collections.sort(gridInfo.landmarks, (o1, o2) -> Float.compare(o2.con, o1.con));
-
-            //Make zones that only contain floor points show fewer points
-            /*if ((gridInfo.highZ - this.lowZ < 0.2)){
-                gridInfo.maxNumberOfPoints = (int)(gridInfo.maxNumberOfPoints * 0.2);
-            }
-            else if ((gridInfo.highZ - this.lowZ < 0.4)){
-                gridInfo.maxNumberOfPoints = (int)(gridInfo.maxNumberOfPoints * 0.4);
-            }*/
-
             if (gridInfo.landmarks.size() > gridInfo.maxNumberOfPoints)
                 gridInfo.landmarks = new CopyOnWriteArrayList<>(gridInfo.landmarks.subList(0, gridInfo.maxNumberOfPoints));
             for (Landmark landmark : gridInfo.landmarks){
