@@ -1,4 +1,4 @@
-package com.google.ar.core.examples.java.EdgeSLAM;
+package com.EdgeSLAM;
 
 import android.util.Log;
 
@@ -8,8 +8,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
-import com.google.ar.core.examples.java.EdgeSLAM.GridZones;
-import com.google.ar.core.examples.java.EdgeSLAM.GridInfo;
+import com.EdgeSLAM.GridZones;
+import com.EdgeSLAM.GridInfo;
 
 
 public class LandmarksHelper {

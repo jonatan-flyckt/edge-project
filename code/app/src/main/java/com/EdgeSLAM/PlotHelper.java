@@ -1,4 +1,4 @@
-package com.google.ar.core.examples.java.EdgeSLAM;
+package com.EdgeSLAM;
 
 import android.app.Activity;
 import android.content.Context;

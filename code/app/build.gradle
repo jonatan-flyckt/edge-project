@@ -13,7 +13,7 @@ def setVersionName = { ->
 android {
     compileSdkVersion 28
     defaultConfig {
-        applicationId "com.google.ar.core.examples.java.sharedcamera"
+        applicationId "com.java.EdgeSLAM"
 
         // Camera2 API requires minSdkVersion >= 21.
         // AR Optional apps must declare minSdkVersion >= 14.

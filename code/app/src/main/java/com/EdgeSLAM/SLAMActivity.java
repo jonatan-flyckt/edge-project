@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.ar.core.examples.java.EdgeSLAM;
+package com.EdgeSLAM;
 
 
 import android.support.v7.app.AppCompatActivity;
@@ -57,14 +57,16 @@ import com.google.ar.core.Pose;
 import com.google.ar.core.Session;
 import com.google.ar.core.SharedCamera;
 import com.google.ar.core.TrackingState;
-import com.google.ar.core.examples.java.ARCore.helpers.CameraPermissionHelper;
-import com.google.ar.core.examples.java.ARCore.helpers.DisplayRotationHelper;
-import com.google.ar.core.examples.java.ARCore.helpers.FullScreenHelper;
-import com.google.ar.core.examples.java.ARCore.helpers.TrackingStateHelper;
-import com.google.ar.core.examples.java.ARCore.rendering.BackgroundRenderer;
-import com.google.ar.core.examples.java.ARCore.rendering.PointCloudRenderer;
+import com.ARCore.helpers.CameraPermissionHelper;
+import com.ARCore.helpers.DisplayRotationHelper;
+import com.ARCore.helpers.FullScreenHelper;
+import com.ARCore.helpers.TrackingStateHelper;
+import com.ARCore.rendering.BackgroundRenderer;
+import com.ARCore.rendering.PointCloudRenderer;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
 import com.google.ar.core.exceptions.UnavailableException;
+import com.java.EdgeSLAM.R;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;

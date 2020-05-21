@@ -1,4 +1,4 @@
-package com.google.ar.core.examples.java.EdgeSLAM;
+package com.EdgeSLAM;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.ar.core.examples.java.ARCore.helpers;
+package com.ARCore.helpers;
 
 import android.app.Activity;
 import android.content.Context;
