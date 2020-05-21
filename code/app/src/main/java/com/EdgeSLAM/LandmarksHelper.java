@@ -8,8 +8,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
-import com.EdgeSLAM.GridZones;
-import com.EdgeSLAM.GridInfo;
 
 
 public class LandmarksHelper {
@@ -20,7 +18,7 @@ public class LandmarksHelper {
 
     float CLEAN_CAMERA_THRESHOLD = (float) 1;
 
-    final int FRAMES_UNTILL_CLEAN = 20;
+    final int FRAMES_UNTIL_CLEAN = 20;
 
     final int POINTS_IN_GRIDINFO = 300;
 
@@ -47,8 +45,6 @@ public class LandmarksHelper {
         lowY = -INITIAL_VIEW_SIZE;
         highX = INITIAL_VIEW_SIZE;
         highY = INITIAL_VIEW_SIZE;
-        lowZ = 0;
-        highZ = 0;
         camLowX = 0;
         camHighX = 0;
         camLowY = 0;
@@ -57,7 +53,7 @@ public class LandmarksHelper {
 
     private int cleanCount = 0;
 
-    float lowX, highX, lowY, highY, lowZ, highZ, camLowX, camHighX, camLowY, camHighY;
+    float lowX, highX, lowY, highY, camLowX, camHighX, camLowY, camHighY;
 
     public static class Landmark {
         public final float x;
@@ -138,7 +134,7 @@ public class LandmarksHelper {
 
         cleanCount++;
 
-        if (cleanCount > FRAMES_UNTILL_CLEAN) {
+        if (cleanCount > FRAMES_UNTIL_CLEAN) {
             cleanCount = 0;
             cleanLandmarks();
             zonesUpdatedThisIteration.clear();
@@ -210,10 +206,6 @@ public class LandmarksHelper {
                 lowY = gridInfo.lowY;
             if (gridInfo.highY > highY)
                 highY = gridInfo.highY;
-            if (gridInfo.lowZ < lowZ)
-                lowZ = gridInfo.lowZ;
-            if (gridInfo.highZ > highZ)
-                highZ = gridInfo.highZ;
         }
     }
 
@@ -234,10 +226,6 @@ public class LandmarksHelper {
                     gridInfo.lowY = landmark.y;
                 if (landmark.y > gridInfo.highY)
                     gridInfo.highY = landmark.y;
-                if (landmark.z < gridInfo.lowZ)
-                    gridInfo.lowZ = landmark.z;
-                if (landmark.z > gridInfo.highZ)
-                    gridInfo.highZ = landmark.z;
             }
             gridInfo.confidence = confSum / gridInfo.landmarks.size();
         }

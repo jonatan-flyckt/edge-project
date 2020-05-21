@@ -11,6 +11,7 @@ import android.graphics.Point;
 import android.graphics.RadialGradient;
 import android.graphics.Shader;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.View;
 import java.util.ArrayList;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -34,7 +35,7 @@ public class PlotHelper extends View {
         float yDist = Math.max(landmarksHelper.highY, landmarksHelper.camHighY) - Math.min(landmarksHelper.lowY, landmarksHelper.camLowY);
         float xScale = getWidth() / xDist;
         float yScale = getHeight() / yDist;
-        return Math.max(xScale, yScale);
+        return Math.min(xScale, yScale);
     }
 
     public float setPointScalingFactor(){
@@ -44,6 +45,7 @@ public class PlotHelper extends View {
     public void updatePlotSettings(){
         plotScalingFactor = setPlotScalingFactors();
         pointScalingFactor = setPointScalingFactor();
+        Log.d("plotScaling", String.valueOf(plotScalingFactor));
     }
 
     public Point scaledPointFromLandmark(LandmarksHelper.Landmark landmark){
@@ -126,7 +128,7 @@ public class PlotHelper extends View {
 
         updatePlotSettings();
 
-        super.onDraw(canvas);
+        //super.onDraw(canvas);
         canvas.drawPaint(backgroundPaint);
 
         int pointSum = 0;
@@ -154,7 +156,7 @@ public class PlotHelper extends View {
         cameraPathPaint.setStrokeWidth((cameraCircleSize / 3) / pointScalingFactor);
         CornerPathEffect corEffect = new CornerPathEffect((int)(getHeight() * 0.04 / pointScalingFactor));
         cameraPathPaint.setPathEffect(corEffect);
-        cameraPathPaint.setAlpha(100);
+        cameraPathPaint.setAlpha(50);
         try {
             cameraLandmarkPath = landmarksHelper.getCameraLandMarkArray();
             cameraPoint = scaledPointFromLandmark(cameraLandmarkPath.get(cameraLandmarkPath.size() - 1));

@@ -24,7 +24,5 @@ class GridInfo{
     float highX;
     float lowY;
     float highY;
-    float lowZ;
-    float highZ;
     int maxNumberOfPoints;
 }

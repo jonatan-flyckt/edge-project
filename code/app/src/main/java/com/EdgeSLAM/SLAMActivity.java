@@ -110,7 +110,7 @@ public class SLAMActivity extends AppCompatActivity
     @Override
     public void run() {
       updateChart();
-      mainThreadHandler.postDelayed(this, 100);
+      mainThreadHandler.postDelayed(this, 50);
     }
   };
 
