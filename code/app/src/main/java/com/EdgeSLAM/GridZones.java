@@ -3,8 +3,8 @@ package com.EdgeSLAM;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+//Class to hold the meta info about the grids using a hashmap with the grid bounds as keys
 public class GridZones extends ConcurrentHashMap<String, GridInfo> {
-
 }
 
 class GridInfo{

@@ -21,15 +21,12 @@ public class PlotHelper extends View {
     Paint cameraPaint, cameraPathPaint, landmarkPaint, backgroundPaint;
     float landmarkCircleSize, cameraCircleSize;
     Path path;
-
     float plotScalingFactor, pointScalingFactor;
     int numberOfPlotPoints;
-
     int landmarkBaselineAlpha = 25;
-
     public LandmarksHelper landmarksHelper;
 
-
+    //Calculate what scale the plot should have based on extreme points and the screen resolution
     public float setPlotScalingFactors(){
         float xDist = Math.max(landmarksHelper.highX, landmarksHelper.camHighX) - Math.min(landmarksHelper.lowX, landmarksHelper.camLowX);
         float yDist = Math.max(landmarksHelper.highY, landmarksHelper.camHighY) - Math.min(landmarksHelper.lowY, landmarksHelper.camLowY);
@@ -38,22 +35,25 @@ public class PlotHelper extends View {
         return Math.min(xScale, yScale);
     }
 
+    //Base the point size on the total amount of scanned points
     public float setPointScalingFactor(){
         return (float)Math.pow(numberOfPlotPoints, 0.15);
     }
 
+    //Update zoom and graphic sizes
     public void updatePlotSettings(){
         plotScalingFactor = setPlotScalingFactors();
         pointScalingFactor = setPointScalingFactor();
-        Log.d("plotScaling", String.valueOf(plotScalingFactor));
     }
 
+    //Scales a point position based on screen size and the extreme points in x and y directions
     public Point scaledPointFromLandmark(LandmarksHelper.Landmark landmark){
         float newX = (landmark.x - landmarksHelper.lowX) * plotScalingFactor;
         float newY = (landmark.y - landmarksHelper.lowY) * plotScalingFactor;
         return new Point((int)newX, (int)newY);
     }
 
+    //Create paints and initiate the correct display metric values
     public PlotHelper(Context context) {
         super(context);
         DisplayMetrics displayMetrics = new DisplayMetrics();
@@ -81,6 +81,7 @@ public class PlotHelper extends View {
         backgroundPaint.setColor(Color.TRANSPARENT);
     }
 
+    //Calculates the alpha with which to plot a point based on its height position
     int getZAlpha(float z){
         if (z > landmarksHelper.averageCameraZ)
             return landmarkBaselineAlpha;
@@ -93,6 +94,7 @@ public class PlotHelper extends View {
         }
     }
 
+    //Calculates the colour with which to plot a point based on its confidence
     String colorFromConfidence(float confidence){
         String[] colors = {"#ff0000", "#ff5100", "#ff7700", "#ff9900", "#ffc400", "#ffe600", "#eaff00", "#b3ff00", "#80ff00", "#00ff00"};
         int colorPos = (int) (Math.pow(normalizedConfidence(confidence), 1.5) * 10);
@@ -101,12 +103,14 @@ public class PlotHelper extends View {
         return colors[colorPos];
     }
 
+    //Normalizes confidence so that the interval is always 0-1
     float normalizedConfidence(float confidence){
         float lowerBound = landmarksHelper.CONF_THRESHOLD;
         float upperBound = 1;
         return (confidence - lowerBound) / (upperBound - lowerBound);
     }
 
+    //Return the path of the camera
     private Path getCameraPath(ArrayList<LandmarksHelper.Landmark> landmarks){
         path = new Path();
         boolean first = true;
@@ -122,15 +126,14 @@ public class PlotHelper extends View {
         return path;
     }
 
-
+    //Redraws the entire canvas
     @Override
     protected void onDraw(Canvas canvas) {
-
+        //Check if we need to zoom out or re-scale the point sizes
         updatePlotSettings();
-
-        //super.onDraw(canvas);
         canvas.drawPaint(backgroundPaint);
 
+        //Plot all the landmarks with accurate alpha and colour
         int pointSum = 0;
         for (String key: landmarksHelper.gridZones.keySet()){
             GridInfo gridInfo = landmarksHelper.gridZones.get(key);
@@ -167,10 +170,10 @@ public class PlotHelper extends View {
             canvas.drawCircle(cameraPoint.x, cameraPoint.y,cameraCircleSize /pointScalingFactor, cameraPaint);
         }
     }
-
     Point cameraPoint;
     ArrayList<LandmarksHelper.Landmark> cameraLandmarkPath;
 
+    //Calculate pixel size from screen resolution
     public static float pxFromDp(final Context context, final float dp) {
         return dp * context.getResources().getDisplayMetrics().density;
     }

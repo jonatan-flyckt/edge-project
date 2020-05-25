@@ -22,7 +22,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
-
 import android.content.Context;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
@@ -47,7 +46,6 @@ import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
 import android.widget.Toast;
-
 import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Camera;
 import com.google.ar.core.Config;
@@ -66,7 +64,6 @@ import com.ARCore.rendering.PointCloudRenderer;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
 import com.google.ar.core.exceptions.UnavailableException;
 import com.java.EdgeSLAM.R;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -184,6 +181,9 @@ public class SLAMActivity extends AppCompatActivity
 
   // A check mechanism to ensure that the camera closed properly so that the app can safely exit.
   private final ConditionVariable safeToExitApp = new ConditionVariable();
+
+  LinearLayout linearLayout;
+  PlotHelper plotHelper;
 
   // Camera device state callback.
   private final CameraDevice.StateCallback cameraDeviceCallback =
@@ -313,12 +313,10 @@ public class SLAMActivity extends AppCompatActivity
         }
       };
 
+  //Calls the onDraw function for the plot
   public void updateChart(){
     plotHelper.invalidate();
   }
-
-  LinearLayout linearLayout;
-  PlotHelper plotHelper;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -448,7 +446,6 @@ public class SLAMActivity extends AppCompatActivity
       arcoreActive = false;
     }
   }
-
 
   // Called when starting non-AR mode or switching to non-AR mode.
   // Also called when app starts in AR mode, or resumes in AR mode.
@@ -839,7 +836,6 @@ public class SLAMActivity extends AppCompatActivity
       }
     }
   }
-
 
   private boolean isARCoreSupportedAndUpToDate() {
     // Make sure ARCore is installed and supported on this device.

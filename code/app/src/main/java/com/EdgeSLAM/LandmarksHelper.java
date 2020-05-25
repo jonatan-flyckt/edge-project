@@ -1,7 +1,4 @@
 package com.EdgeSLAM;
-
-import android.util.Log;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -38,7 +35,10 @@ public class LandmarksHelper {
     ArrayList<String> zonesUpdatedThisIteration = new ArrayList<String>();
 
     float averageCameraZ = 0;
-
+    float floorPosition = 0;
+    float distanceFromCameraToFloor = 0;
+    private int cleanCount = 0;
+    float lowX, highX, lowY, highY, camLowX, camHighX, camLowY, camHighY;
 
     public LandmarksHelper() {
         lowX = -INITIAL_VIEW_SIZE;
@@ -51,10 +51,7 @@ public class LandmarksHelper {
         cameraLandMarkArray.add(new Landmark(0, 0, 0, 1));
     }
 
-    private int cleanCount = 0;
-
-    float lowX, highX, lowY, highY, camLowX, camHighX, camLowY, camHighY;
-
+    //Class used to represent a landmark's position and strength of confidence
     public static class Landmark {
         public final float x;
         public final float y;
@@ -73,6 +70,7 @@ public class LandmarksHelper {
         return new ArrayList<Landmark>(cameraLandMarkArray);
     }
 
+    //Removes camera landmarks that are too close to previous position
     public void cleanCameraLandmarkArray(){
         Iterator<Landmark> iterator = cameraLandMarkArray.iterator();
         float previousX = 0;
@@ -88,6 +86,7 @@ public class LandmarksHelper {
         }
     }
 
+    //Adds camera landmark and updates average camera position
     public void addCameraLandMark(float x, float y, float z){
         cameraLandMarkArray.add(new Landmark(x * GRID_SIZE, y * GRID_SIZE, z * GRID_SIZE, 1));
         if (x > camHighX)
@@ -101,6 +100,7 @@ public class LandmarksHelper {
         updateAverageCameraZ();
     }
 
+    //Calculates the average height that the user has held the phone when scanning
     public void updateAverageCameraZ(){
         float zSum = 0;
         for (Landmark landmark: cameraLandMarkArray){
@@ -109,10 +109,11 @@ public class LandmarksHelper {
         averageCameraZ = zSum / cameraLandMarkArray.size();
     }
 
+    //Add landmarks if they have high enough confidence, and if they are not outliers
+    //Clean the landmarks if we have added landmarks 20 times
     public void addLandmarks(float[] pointBuffer) {
 
         for (int i = 0; i < pointBuffer.length; i = i + BYTES_PER_FLOAT) {
-
             float fx = pointBuffer[i + 0] * GRID_SIZE;
             float fz = pointBuffer[i + 1] * GRID_SIZE;
             float fy = pointBuffer[i + 2] * GRID_SIZE;
@@ -133,7 +134,6 @@ public class LandmarksHelper {
         }
 
         cleanCount++;
-
         if (cleanCount > FRAMES_UNTIL_CLEAN) {
             cleanCount = 0;
             cleanLandmarks();
@@ -141,22 +141,16 @@ public class LandmarksHelper {
         }
     }
 
+    //Performs pruning of landmarks with several steps
     public void cleanLandmarks() {
         refineGridLandmarks();
         removeGridsWithFewPoints(GRIDINFO_POINT_THRESHOLD);
         cleanCameraLandmarkArray();
         estimateFloorPosition();
         updateExtremePoints();
-        Log.d("floor avgCameraZ", String.valueOf(averageCameraZ));
-        Log.d("floor floorPos", String.valueOf(floorPosition));
-        Log.d("floor camFloorDist", String.valueOf(distanceFromCameraToFloor));
-        Log.d("floor", "-----------");
     }
 
-
-    float floorPosition = 0;
-    float distanceFromCameraToFloor = 0;
-
+    //Estimate the position of the floor on the Z axis by finding the largest distribution of landmarks
     public void estimateFloorPosition(){
         HashMap<String, Integer> zPosMap = new HashMap<String, Integer>();
         for (GridInfo gridInfo: gridZones.values()){
@@ -178,12 +172,12 @@ public class LandmarksHelper {
                 currentEstimatedFloorKey = entry.getKey();
                 largestCount = entry.getValue();
             }
-            Log.d("largestCount", String.valueOf(largestCount));
         }
         floorPosition = Float.parseFloat(currentEstimatedFloorKey);
         distanceFromCameraToFloor = Math.abs(averageCameraZ - floorPosition);
     }
 
+    //Exclude grids with fewer than 40 landmarks
     void removeGridsWithFewPoints(int threshold){
         ArrayList<String> keysToBeRemoved = new ArrayList<String>();
         for (Map.Entry<String, GridInfo> entry : gridZones.entrySet()){
@@ -196,6 +190,7 @@ public class LandmarksHelper {
         }
     }
 
+    //Calculates new extreme points for the entire plot
     public void updateExtremePoints(){
         for (GridInfo gridInfo: gridZones.values()){
             if (gridInfo.lowX < lowX)
@@ -209,6 +204,7 @@ public class LandmarksHelper {
         }
     }
 
+    //Prunes a grid from points by excluding points with low confidence
     public void refineGridLandmarks(){
         for (String key: zonesUpdatedThisIteration){
             GridInfo gridInfo = gridZones.get(key);
@@ -231,12 +227,14 @@ public class LandmarksHelper {
         }
     }
 
+    //HashMap key value for grids based on bounds of grid
     public String keyFromGridBounds(int xLo, int xHi, int yLo, int yHi){
         StringBuilder sb = new StringBuilder();
         sb.append(xLo).append(xHi).append(yLo).append(yHi);
         return sb.toString();
     }
 
+    //Resets all values when the user presses STOP
     public void resetSLAM() {
         zonesUpdatedThisIteration.clear();
         gridZones.clear();
