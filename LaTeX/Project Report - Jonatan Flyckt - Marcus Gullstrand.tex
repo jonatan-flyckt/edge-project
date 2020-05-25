@@ -37,20 +37,21 @@
 \maketitle
 \begin{abstract}
 
-\textbf{GLÖM INTE ATT SKRIVA ABSTRACT}
+Simultaneous localisation and mapping (SLAM) can be used to create maps of areas while simultaneously detecting and mapping an agent's position in these maps through the use of various sensors. The objective of our project was to create an intuitive and easy-to-use SLAM implementation using mainly the camera sensor on mobile Android devices that could show accurate 2D floor-plan style maps. By using Google's ARCore library to extract SLAM landmarks, we created an application that continuously plots and updates a 2D map using the Android Canvas library. The resulting application works well in well-lit indoor areas, as well as outdoor areas without inclination. However, the application perform poorly when there is a lot of incline, or when the scanning area is too dark to accurately detect landmarks. Our application has room for improvements with regards to processing performance, better landmark collection, and more accurate plotting. Although the application has issues, the final result is a fun and intuitive application that can be used by anyone with a mobile Android device.
 
 \end{abstract}
 
 \section{Introduction}
 \subsection{Background}
 
-Simultaneous localisation and mapping (SLAM) is the technique of continuously and incrementally building a map of an environment, while also simultaneously localising the position of some agent (often a mobile robot) in this environment \cite{background1}. The SLAM problem is of great interest to the robotics community, and SLAM is used by both indoor and outdoor robots, as well as in underwater and airborn systems \cite{background1}. In recent years, SLAM has also seen successful use in commercial semi-autonomous vehicles such as Tesla cars \cite{autonomous-cars}. The process of SLAM involves the agent moving through the environment and using one or more sensors to calculate an unknown number of landmarks by observing their relative position between different time frames \cite{background1}. Common sensors for SLAM are cameras, Sonars, and Lasers \cite{background2}.
+SLAM is the technique of continuously and incrementally building a map of an environment, while also simultaneously localising the position of some agent (often a mobile robot) in this environment \cite{background1}. The SLAM problem is of great interest to the robotics community, and SLAM is used by both indoor and outdoor robots, as well as in underwater and airborn systems \cite{background1}. In recent years, SLAM has also seen successful use in commercial semi-autonomous vehicles such as Tesla cars \cite{autonomous-cars}. The process of SLAM involves the agent moving through the environment and using one or more sensors to calculate an unknown number of landmarks by observing their relative position between different time frames \cite{background1}. Common sensors for SLAM are cameras, Sonars, and Lasers \cite{background2}.
 
 \autoref{fig:slam} shows a simple SLAM scenario of a robot moving through an environment, estimating its position as well as the positions of discovered landmarks. At a time instant $k$, there are several different data gathered. $\textbf{x}_k$ shows the location and orientation of the robot. $\textbf{u}_k$ shows the applied state change at time $k-1$ to move the robot to its $\textbf{x}_k$ state. $\textbf{m}_i$ denotes the estimated location of the observed landmarks. $\textbf{z}_{ik}$ is the observation of the landmark $i$ at the time $k$. These data quantities constitute the essence of a SLAM algorithm. \cite{background1}
 
 For all times $k$, a joint posterior density probability distribution needs to be calculated to determine how accurate the mapping of an $\textbf{m}_i$ landmark and the state $\textbf{x}_k$ of the vehicle is. This is calculated using Bayes theorem recursively with the following formula: $P(\textbf{x}_{k-1}, \textbf{m} | \textbf{Z}_{0:k-1}, \textbf{U}_{0:k-1})$. A map $m$ of all landmarks can then be constructed by combining the landmarks of all the observations from different locations. \cite{background1}
 
-\textbf{NÄMN NÅGOT OM \cite{vislam} FÖR MER BAKGRUND}
+Visual-Inertial SLAM (VISLAM) is a SLAM method that uses a visual sensor (camera) as well as on-board edge sensors such as gyroscope and accelerometer to accurately detect the gravitational direction, producing correct axes relative to earth. VISLAM is also generally a cheaper alternative to laser-based approaches. \cite{vislam}
+
 
 \begin{figure}[!htb]
     \centering
@@ -61,7 +62,7 @@ For all times $k$, a joint posterior density probability distribution needs to b
 % Introducera SLAM som koncept. Vilken kombination av teknologier används för att möjliggöra SLAM generellt sett? Vilka typ av sensorer kan användas i olika tillämpningar (LiDAR etc)? 'Man behöver en kamera... etc.'
 
 \subsection{Problem description}
-In this project, we attempt to use the Visual-inertial SLAM (VISLAM) implementation of Google's ARCore library \cite{ARCore} to map spatial environments on mobile Android devices. Mobile Android devices were chosen for several reasons:
+In this project, we attempt to use the VISLAM implementation of Google's ARCore library \cite{ARCore} to map spatial environments on mobile Android devices. Mobile Android devices were chosen for several reasons:
 \begin{itemize}
     \item They are user friendly and intuitive.
     \item They are mobile and easy to move around with in any environment.
@@ -76,7 +77,7 @@ Because we could not find any free-to-use open source 3D plotting libraries for 
 % Vad vill vi göra med SLAM? (Vi vill anskaffa oss en 2D karta över området där SLAM påbörjas som inkluderar ens egna position). Varför valde vi mobil? Vi ville ha en användarvänlig SLAM-upplevelse.
 
 \section{Method}
-\subsection{ARCore (KOLLA REFERENS TILL GOOGLE ARCORE OCH MER)}
+\subsection{ARCore}
 %Motivera varför vi valde google ARCore. Berätta hur ARCore fungerar (nämn gyro och accelerometer), vilken SLAM-metod använder ARCore, och hur räknas confidence ut?
 
 %https://developer.android.com/guide/topics/sensors/sensors_motion
@@ -89,7 +90,7 @@ ARCore consists of 3 parts: 'Motion tracking', 'Enviromental understanding' and 
 
 Motion tracking in ARCore is the combination of processed visual information (Computer vision) and spacial information about the device from inertial measurements (accelerometer data, gyroscope data, rotation etc.). The visual information, given as at least two or more feature points in an image frame, and information about the phone relative to the earth gives the combined information of points of interest in each image frame that have the correct orientation and position relative to the phone and to the earth. \cite{ARCore}
 
-For each point of interest in each image frame, ARCore calculates a confidence that indicates how sure it is that that point is representing something real. The confidence is on a scale of 0 to 1, 0 being not sure at all and 1 being so sure that it is basically a fact. \textbf{står detta någonstans i referensen? Annars får vi typ ta bort den och skriva mer att det inte står någonstans, men vi använder det för att det funkar bra} \cite{ARCore}
+For each point of interest in each image frame, ARCore calculates a confidence that indicates how sure it is that that point is representing an accurate description of reality. The confidence is on a scale of 0 to 1, 0 being not sure at all and 1 being so sure that it is essentially a fact. We could not find any documentation of how this confidence calculation is performed. However, the confidence values showed very good results, so we still use them in our application when deciding which landmarks to add, as well as what landmarks to prune from the map.
 
 \subsection{Landmark processing} \label{landmark-processing}
 %Berätta hur vi hämtar ut landmarks och processerar dem. Berätta hur vi målar ut allt på skärmen.
@@ -114,10 +115,18 @@ The landmarks and phone position are visualised as a 2D map in a view below the 
 
 Because the scanned area can grow continuously throughout a SLAM session, the view needs to be zoomed out as more areas are discovered. This zoom is designed to feel fluid to the user. The scale in which to display the landmarks is calculated by looking at the pixel size of the view and the extreme x and y points that have been scanned. Because landmark positions can have negative values, and are expressed as float point values as metres from the original camera position. The pixel points at which to display each single landmark needs to be recalculated for each screen update.
 
-To show the user an accurate 2D representation, we also need to exclude points scanned close to the floor. If this was not done, the mapping would look like a mess of points all over the map. To accomplish this, we calculate the average Z axis position of the phone (usually at roughly 1.5 metres height) as well as the estimated floor position (as described in the \nameref{landmark-processing} section). The alpha of each point is then continuously lower the closer to the floor the point is (with an alpha of 0 at the floor). 
+To show the user an accurate 2D representation, we also need to exclude points scanned close to the floor. If this was not done, the mapping would look like a mess of points all over the map. To accomplish this, we calculate the average Z axis position of the phone (usually at roughly 1.5 metres height) as well as the estimated floor position (as described in the \nameref{landmark-processing} section). The alpha of each point is then continuously lower the closer to the floor the point is (with an alpha of 0 at the floor).
 
-\textbf{BILD PÅ APPEN HÄR}
+\autoref{fig:scan-example} shows the application design and results from detailed scans of two separate well-lit indoor areas.
 
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=0.6\linewidth]{scan-example.png}
+    \caption{Screen grabs from two detailed scans of well-lit indoor areas. The results are accurate floor-plan maps where floor landmarks are excluded.}
+    \label{fig:scan-example}
+\end{figure}
+
+\newpage
 \subsection{Workflow} \label{workflow}
 \autoref{fig:workflow} shows a workflow of the running application for each landmark update iteration.
 \begin{figure}[!htb]
@@ -126,17 +135,51 @@ To show the user an accurate 2D representation, we also need to exclude points s
     \caption{Workflow describing the SLAM and visualisation measures taken by our application at each iteration of landmark updates (roughly once per second depending on device).}
     \label{fig:workflow}
 \end{figure}
+
+\clearpage
 %\subsection{Our implementation in conjunction with ARCore}
 % Varför målar vi ut på detta sättet? Varför 2D? Workflow-diagram som förklarar från sensorinsamling till utmålning.
 % Varför 2D och inte 3D? Svårigheter?
 
 \section{Discussion and Results}
-\subsection{Strengths and weaknesses (INTE KLAR)}
+\subsection{Strengths and weaknesses}
 %Diskutera svagheter och styrkor med vår metod. Visa bilder och diskutera specifika scenarier och hur appen reagerar på dem.
 
-The overall performance of the SLAM is good when the scanning conditions are sufficient (good lighting and not a lot of dark zones). However, if the area that is about to be scanned is to dark, the camera will be unable to accurately make out feature points. The application runs smoothly on most devices. However, when the amount of scanned points reaches a certain level, the application starts to run slower on devices with a worse CPU. 
+The overall performance of the SLAM is good when the scanning conditions are sufficient (good lighting and not a lot of dark zones). However, if the area that is being scanned is too dark, the camera will be unable to accurately make out feature points (\autoref{fig:dark-no-landmarks}, \autoref{fig:good-poor-scan}). Lack of lighting is a general problem in visual-based SLAM methods \cite{dark}. The application runs smoothly on most devices. However, when the amount of scanned points reaches a certain level, the application starts to run slower on devices with a worse CPU.
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=0.2\linewidth]{dark-no-landmarks.png}
+    \caption{In dark areas, the SLAM does not manage to detect any single landmark.}
+    \label{fig:dark-no-landmarks}
+\end{figure}
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=0.8\linewidth]{good-poor-scan.png}
+    \caption{The difference between sufficient and insufficient lighting. The same area has been scanned, but the picture on the right has had poor lighting conditions, whereas the picture on the left has had excellent lighting conditions. The SLAM on the right has lost track of its position several times and plotted in incorrect areas. It is also clear that a lot fewer landmarks (and with worse confidence) have been picked up.}
+    \label{fig:good-poor-scan}
+\end{figure}
 
 The application is very good at picking up landmark points and mapping them accurately when there are a lot of unique reference points. For instance: paintings, kitchen tiles, blankets, pillows, couches etc. all yield very good landmark points. The application is also very good at showing to the user what is being scanned in the camera overlay, as well as in the real-time plot update. Like all visual based SLAMs, the performance is much worse when the scanned area is "blank", i.e. it does not contain a lot of texture or colour differences. An example is a white ceiling or a white wall, which will be poorly mapped by the SLAM algorithm.
+
+Our application is tuned mainly to be used in flat areas, as floor level landmarks need to be excluded to produce a good map in a 2D view. This means that scanning areas with a lot of incline sometimes can produce weird results. Because we reduce the alpha of points at an estimated floor level, incorrect reduction of alpha values can occur. This can be clearly seen in \autoref{fig:floor-recalibration}, where the severe incline of the garden being scanned causes the floor estimation to "jump" as more areas are scanned. 
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=0.6\textwidth]{floor-recalibration.png}
+    \caption{The effects of floor position estimation. In an area with a lot of incline, the floor position is continuously re-estimated, producing incorrect maps a lot of the time.}
+    \label{fig:floor-recalibration}
+\end{figure}
+
+Although measures were taken to exclude outlier points scanned through windows (only points with good confidence within 1.5 metres of previously scanned areas were added), sometimes the application included outdoor points. This generally occurred when the outdoor points were on the same height as the indoor points (meaning that the points were close enough to be included) (\autoref{fig:mirror-window-examples}). Another problem with our application is that looking through mirrors caused the application to perceive the reflection as an entirely separate room. This can be seen in \autoref{fig:mirror-window-examples}. If the slam had been laser or sonar based, these landmarks would never be created, but we have no good suggestion for how to remove these inaccuracies with a camera-based SLAM method.
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=0.6\linewidth]{mirror-window-examples.png}
+    \caption{The left image shows the SLAM inaccurately detecting mirror reflections as a separate new room. The right image shows the SLAM detecting and plotting outdoor points.}
+    \label{fig:mirror-window-examples}
+\end{figure}
 
 Due to time limitations, we spent limited time on examining the features of the ARCore library. ARCore performs loop closing (adjusts all landmark positions after reaching an area previously scanned), but this will not work perfectly on our application because we extract and save the landmarks in our own structure. We also have no control over the computer vision measures that ARCore takes to extract the landmarks, but have to rely on the algorithm extracting the landmark points. ARCore also contains limited documentation as to how this is done, so it is hard to analyse how, and if, it could be done better.
 %Ta intressanta fakta från videor.
@@ -154,11 +197,12 @@ Due to time limitations, we spent limited time on examining the features of the 
 % "Ingen" loopclosing
 % Inte kontroll över computer vision algoritmen (ARCore är som en blackbox i hur den får ut sina intresse-punkter)
 
-
-\subsection{Conclusion}
-Our application is fun and can be used to receive an accurate mapping of most well-lit areas, both indoor and outdoor. It is intuitive to use with points in different colours showing what areas are scanned well or not. The application also produces good 2D floor-plan maps by excluding floor points. However, for it to be useful as an instantaneous mapping for an automated vehicle or similar, the app would need to be optimised a bit more. Future work could include making the app more friendly to devices with poor hardware. We could also make use of ARCore's built-in loop closing instead of manually extracting all landmarks and processing them separately.
+\newpage
+\subsection{Conclusions and future work}
+Our application is fun and can be used to receive an accurate mapping of most well-lit areas, both indoor and outdoor. It is intuitive to use with points in different colours showing what areas are scanned well or not. The application also produces good 2D floor-plan maps by excluding floor points. However, it maps poorly in areas with a lot of incline. For it to be useful as an instantaneous mapping for an automated vehicle or similar, the app would need to be optimised a bit more. Future work could include making the app more friendly to devices with poor hardware. We could also make use of ARCore's built-in loop closing instead of manually extracting all landmarks and processing them separately. To circumvent issues with dark areas, we could also make use of the phone's LED lighting automatically when dark areas are reached. This was done by \cite{dark} with good results.
 % Är det användbart i slutändan? Kan VÅRT arbete användas i ett verkligt scenario?
 
+\newpage
 \bibliographystyle{unsrt}  
 \bibliography{references.bib}
 
@@ -177,6 +221,6 @@ Use this link to download and install the application on an Android mobile devic
 Note: The application code is divided into two folders: "ARCore" and "EdgeSLAM". The code in the EdgeSLAM folder is produced by us (with the exception of some of the code in the SLAMActivity class), and all the code in the ARCore part is from the cloned ARCore repository.
 
 \subsection*{Appendix 3: Video demonstration}
-\textbf{LÄNKA TILL YOUTUBE-VDEO}
+\underline{\href{https://www.youtube.com/watch?v=DzVZ3-SN9z8&feature=youtu.be&fbclid=IwAR3qJmJFWr76Q3OxECmys8Ir4qt6TEGevo86pbrAXv_0whPho_CLZh_HW-M}{YouTube video demonstrating our application running in live environments}}
 
 \end{document}
